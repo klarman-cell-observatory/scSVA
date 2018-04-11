@@ -1,0 +1,46 @@
+Package: scSVA
+Type: Package
+Title: Single Cell Scalable Visualization and Analytics
+Version: 0.1.0
+Author@R: c(person("Marcin","Tabaka",email="mtabaka@broadinstitute.org",role=c("aut","cre")),
+                   person("Aviv","Regev", role = "ths"),
+                   person("Broad Institute", role = "cph"))
+Maintainer: Marcin Tabaka <mtabaka@broadinstitute.org>
+Description: A tool for visualization and exploratory analysis of singl-cell datasets.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+BugReports: mtabaka@broadinstitute.org
+SystemRequirements: 
+    Python (>= 3.6.3),
+    numpy  (>= 1.13.3),
+    vaex   (>= 1.0.0-beta.6)
+Depends: 
+    R (>= 3.4.0), 
+    Matrix, 
+    ggplot2
+Imports: 
+    reticulate,
+    colorRamps,
+    RColorBrewer,
+    dichromat,
+    viridis,
+    Cairo,
+    colourpicker,
+    shiny,
+    shinydashboard,
+    shinythemes,
+    scales,
+    sp,
+    extrafont,
+    plyr,
+    dplyr,
+    ggrepel,
+    plotly,
+    DT,
+    data.table,
+    tableHTML,
+    rhdf5,
+    BiocParallel
+Remotes: thomasp85/shinyFiles,
+RoxygenNote: 6.0.1
