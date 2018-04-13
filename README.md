@@ -197,7 +197,7 @@ We focus here on running scSVA using the Google Cloud Compute Engine (GCE):
 Developed by Marcin Tabaka from the [Regev Lab](https://www.broadinstitute.org/regev-lab) at the [Broad Institute of MIT and Harvard](https://www.broadinstitute.org).
 Use this [link](mailto:mtabaka@broadinstitute.org) to contact me. 
 
-### Bugs reporting and feature requests
+### Bugs reports and feature requests
 Use the issue tracker for bugs reporting and new features requesting.
  
 

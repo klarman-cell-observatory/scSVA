@@ -3,37 +3,29 @@ FROM rocker/rstudio
 ENV CRAN_MIRROR http://cran.rstudio.com
 
 RUN apt-get update --fix-missing \
-	&& apt-get install -y \
-		ca-certificates \
-    	        libglib2.0-0 \
-	 	libxext6 \
-	   	libsm6  \
-	   	libxrender1 \
-		libxml2-dev
+	 && apt-get install -y \
+	    ca-certificates \
+    	    libglib2.0-0 \
+	    libxext6 \
+	    libsm6  \
+	    libxrender1 \
+	    libxml2-dev \
+            fontocnfig \
+            unzip
 
-# python3
-
+# Install Python
 RUN apt-get install -y \
-		python3-pip \
-		python3-dev \
-	        && pip3 install virtualenv
+       	python3-pip \
+	python3-dev \
+        && pip3 install virtualenv
 
-RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
-    wget --quiet https://repo.continuum.io/miniconda/Miniconda2-4.4.10-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
-    rm ~/miniconda.sh
+#Install numpy + vaex
+RUN pip3 install --pre numpy
+RUN pip3 install --pre vaex
 
-ENV PATH /opt/conda/bin:$PATH
-
-
-# Python packages from conda
-RUN conda install -y numpy
-RUN pip install --pre vaex
-
+#Install zindex
 RUN apt-get install -y cmake
-
 RUN apt-get install -y zlib1g-dev
-
 RUN git clone https://github.com/mattgodbolt/zindex.git \
       && cd zindex \
       && make \
@@ -60,21 +52,21 @@ RUN export GCSFUSE_REPO="gcsfuse-$(lsb_release -c -s)" && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     apt-get update && apt-get install -y gcsfuse
 
-#Cairo
+#Install Cairo
 RUN apt-get install -y libgtk2.0-dev \
                        libcairo2-dev \
                        xvfb \
                        xauth \
                        xfonts-base \
                        libxt-dev \
-#                       xdg-utils \
                        vim
 
-#Install fonts
-#RUN  mkdir ~/.fonts
-COPY FONTS /usr/share/fonts/
+#Install google fonts
+RUN wget https://github.com/google/fonts/archive/master.zip -O /usr/share/fonts/google_fonts.zip
+RUN cd /usr/share/fonts; unzip google_fonts.zip
 RUN fc-cache -f -v /usr/share/fonts/
-#Install R and R packages
+
+#Install R and dependencies
 RUN install2.r --repos ${CRAN_MIRROR}\
 		Rcpp \
 		devtools \
@@ -87,6 +79,7 @@ RUN install2.r --repos ${CRAN_MIRROR}\
 		yaml \
 		reticulate 
 
+#Import fonts                
 RUN Rscript -e "library(extrafont);font_import('/usr/share/fonts',prompt = FALSE)"
 
 #Install R dependencies
@@ -109,7 +102,6 @@ RUN install2.r --repos ${CRAN_MIRROR}\
                 plyr\
                 ggrepel
 
-COPY scSVA_0.1.0.tar.gz /home/
 
 RUN install2.r --repos ${CRAN_MIRROR}\
                 plotly\
@@ -118,10 +110,10 @@ RUN install2.r --repos ${CRAN_MIRROR}\
                 tableHTML\
                 && Rscript -e "source('https://bioconductor.org/biocLite.R'); biocLite('rhdf5');  biocLite('BiocParallel')" \
                 && Rscript -e "devtools::install_github(c('thomasp85/shinyFiles'))" \
-                #&& Rscript -e "install.packages('/home/scSVA_0.1.0.tar.gz', repos = NULL, type='source')"\
-                ## clean up
                 && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
-#Install scSVA                 
+  
+#Install scsva
+COPY scSVA_0.1.0.tar.gz /home/
 RUN Rscript -e "install.packages('/home/scSVA_0.1.0.tar.gz', repos = NULL, type='source')" \
                && rm /home/scSVA_0.1.0.tar.gz
 
