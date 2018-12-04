@@ -1,4 +1,4 @@
-FROM rocker/rstudio
+FROM rocker/shiny
 
 ENV CRAN_MIRROR http://cran.rstudio.com
 
@@ -26,10 +26,6 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
     && rm -rf /tmp/miniconda.sh \
     && conda install -y python=3 \
     && conda update conda \
-#    && apt-get -qq -y remove curl bzip2 \
-#    && apt-get -qq -y autoremove \
-#    && apt-get autoclean \
-#    && rm -rf /var/lib/apt/lists/* /var/log/dpkg.log \
     && conda clean --all --yes
 
 ENV PATH /opt/conda/bin:$PATH
@@ -38,6 +34,10 @@ RUN conda install -v -c anaconda pyopengl
 RUN conda install -c anaconda numpy 
 RUN conda install -c conda-forge vaex
 RUN conda install -c plotly plotly-orca
+
+RUN apt-get update --fix-missing \
+           && apt-get install -y \
+           git
 
 #Install zindex
 RUN git clone https://github.com/mattgodbolt/zindex.git \
@@ -143,7 +143,7 @@ RUN install2.r --repos ${CRAN_MIRROR}\
   
 #Install scsva
 COPY scSVA_0.2.0.tar.gz /home/
-RUN Rscript -e "install.packages('/home/scSVA_0.2.0.tar.gz', repos = NULL, type='source')" \
+RUN  Rscript -e "install.packages('/home/scSVA_0.2.0.tar.gz', repos = NULL, type='source')" \
                && rm -rf /home/scSVA_0.2.0.tar.gz
                
 RUN apt-get install -y libxext-dev \
@@ -166,10 +166,6 @@ RUN cp /usr/local/bin/orca /usr/bin/orca
 RUN echo '#!/bin/bash\nxvfb-run --auto-servernum --server-args "-screen 0 1024x1024x24" /usr/bin/orca "$@" --enable-webgl ' > /usr/local/bin/orca && \
     chmod +x /usr/local/bin/orca
 
-RUN sudo apt-get install ssh -y
-RUN mkdir --mode=700 /root/.ssh
-
 # Run rocker/rstudio init
-CMD ["/init"]
-#CMD ["R", "-e", "shiny::runApp('/usr/local/lib/R/site-library/scSVA/scSVA/',port=8787"]
+COPY ./inst/scSVA /srv/shiny-server/myapp/
 

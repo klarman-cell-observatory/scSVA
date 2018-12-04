@@ -7,7 +7,7 @@ interactive visualization and exploratory analysis of massive
 single-cell omics datasets. The **scSVA** is built with [Shiny](https://shiny.rstudio.com) and is optimized for efficient 
 visualization of cells on 2D/3D embedding and extracting cell features to visualize them 
 from compressed big expression matrices stored on disk in [HDF5](https://www.hdfgroup.org/solutions/hdf5/), [Loom](http://loompy.org) and text file formats.
-This reduces the memory resources needed to explore a scRNA-Seq dataset by a factor of ~20,000.
+This reduces the memory resources needed to explore scRNA-Seq datasets by a factor of ~20,000.
 The **scSVA** is able to visualize and explore interactively hundreds of millions of cells on a laptop 
 or a billion cells on a moderate desktop computer. 
 As a back-end it uses [VaeX](https://github.com/maartenbreddels/vaex), 
@@ -83,7 +83,7 @@ tab.
 
 ### Install scSVA as a docker container
 
-It has full installation of Rstudio server with R version 3.4.4 with openblass libraries 
+It has full installation of Rstudio server with R version 3.5.1 with openblass libraries 
 and R dependencies preinstalled for **scSVA**.  
 Python version 3.6.4 is preinstalled with Anaconda with **numpy** (version 1.14.0) and **vaex**
 (version 1.0.0b8). It contains also **zindex** for creating an index on compressed files and 

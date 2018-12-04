@@ -2126,7 +2126,8 @@ observeEvent(input$load_dataset_ClusterNames, {
       showNotification("Select VM Name",type = "warning",duration = 10)
       return()
     } 
-    vm<<-gce_get_instance(input$vm_name_sd)
+    vm  <<- gce_get_instance(input$vm_name_sd)
+    if(input$container_name == ""){tag <<- gce_ssh(vm, "docker images | awk '{if(NR==2) print $1}'",capture_text = T)} 
     termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Selected VM: ",input$vm_name,"</b></font>",sep = '<br/>')
     termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",capture.output(vm),"</font>",collapse = '<br/>'),sep = '<br/>')
     getTerminalOutputResult()
@@ -2393,7 +2394,7 @@ observeEvent(input$load_dataset_ClusterNames, {
   })
   
   observeEvent(input$DMap_run, {
-    Parameters.DMap<<-data.frame( path=input$DMap_Path,
+    Parameters.DMap<<-data.frame( path=paste0("/home/",basename(input$DMap_Path)),
                                   nNN=input$DMap_nNN,
                                   k=input$DMap_k,
                                   EigDecompMethod=input$DMap_EigDecompMethod,
@@ -2431,14 +2432,14 @@ observeEvent(input$load_dataset_ClusterNames, {
                                     collapse = '<br/>'),
                      sep = '<br/>')
     getTerminalOutputResult()
-    cmd=paste0("run -v ~/:/home --rm ",tag," R -e 'source(\"/scsvatools/DMap.R\")' &>DMap.logs &")
+    cmd=paste0("run -v ",dirname(input$DMap_Path),":/home --rm ",tag," R -e 'source(\"/scsvatools/DMap.R\")' &>DMap.logs &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
     
   })
   
   observeEvent(input$NNG_run, {
-    Parameters.NNG<<-data.frame( path= input$NNG_Path,
+    Parameters.NNG<<-data.frame( path= if(input$NNG_Path==""){input$NNG_Path}else{paste0("/home/",basename(input$NNG_Path))},
                                  nNN=input$NNG_nNN,
                                  nThreads=input$NNG_nThreads,
                                  AnnMethod=input$NNG_NNMethod,
@@ -2473,14 +2474,14 @@ observeEvent(input$load_dataset_ClusterNames, {
                                     collapse = '<br/>'),
                      sep = '<br/>')
     getTerminalOutputResult()
-    cmd=paste0("run -v ~/:/home --rm ",tag," R -e 'source(\"/scsvatools/NNG.R\")' &>NNG.logs &")
+    cmd=paste0("run -v ",if(input$NNG_Path==""){"~/"}else{dirname(input$NNG_Path)},":/home --rm ",tag," R -e 'source(\"/scsvatools/NNG.R\")' &>NNG.logs &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
     
   })
   
   observeEvent(input$FLE_run, {
-  Parameters.FA_3D<<-data.frame( path= input$FLE_Path,
+  Parameters.FA_3D<<-data.frame( path= if(input$FLE_Path==""){input$FLE_Path}else{paste0("/home/",basename(input$FLE_Path))},
                                  memmory = paste0(input$FLE_memmory,"g"),
                                  layout=input$FLE_type,
                                  nsteps=input$FLE_nsteps,
@@ -2518,7 +2519,7 @@ observeEvent(input$load_dataset_ClusterNames, {
                                     collapse = '<br/>'),
                      sep = '<br/>')
     getTerminalOutputResult()
-    cmd=paste0("run -v ~/:/home --rm ",tag," R -e 'source(\"/scsvatools/FLE.R\")' &> FLE.logs &")
+    cmd=paste0("run -v ",if(input$FLE_Path==""){"~/"}else{dirname(input$FLE_Path)},":/home --rm ",tag," R -e 'source(\"/scsvatools/FLE.R\")' &> FLE.logs &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
     
@@ -2589,6 +2590,7 @@ observeEvent(input$FLE_loadCoordinates, {
   gce_ssh_download(vm,"~/NNG_output_FLE.txt","~/",verbose = TRUE)
   file_name="~/NNG_output_FLE.txt"
   tmp=fread(file_name)
+  tmp=tmp[order(tmp$id),]
   if(ds$length()!=nrow(tmp)){
           if(input$show_clusters | input$plot_clusters | input$plot_expression) {
             updateCheckboxInput(session = session,inputId = "show_clusters",value = FALSE)
@@ -2600,9 +2602,9 @@ observeEvent(input$FLE_loadCoordinates, {
         } else {
           ds$add_column('x3d',data = numpy$array(tmp$x)) 
         }
-  ds$add_column('y',data = numpy$array(fread(file_name)$y))
+  ds$add_column('y',data = numpy$array(tmp$y))
   ds$add_virtual_column("y3d", "y")
-  ds$add_column('z3d',data = numpy$array(fread(file_name)$z))
+  ds$add_column('z3d',data = numpy$array(tmp$z))
   gc()
   gc_python$collect()
   vals$X_3d    <- c(py_to_r(ds$min('x3d')),py_to_r(ds$max('x3d')))
