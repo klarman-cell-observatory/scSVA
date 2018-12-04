@@ -23,43 +23,61 @@ require(plyr)
 require(dplyr)
 require(ggrepel)
 require(plotly)
+require(plot3D)
 require(DT)
 require(data.table)
 require(tableHTML)
-require(BiocParallel)
+require(future)
+require(future.apply)
+require(shinyBS)
+require(shinyjqui)
+require(shinyAce)
+#require(magick)
+#require(googleComputeEngineR)
 suppressMessages(loadfonts())
+
 #Docker
 Sys.setenv(PATH = paste("/opt/conda/bin/", Sys.getenv("PATH"),sep=":"))
+GCU<-if(Sys.info()["sysname"]=="Darwin"){system("source ~/.bash_profile; which gsutil",intern = T)}else if(Sys.info()["sysname"]=="Linux"){system("which gsutil",intern = T)}
+
+options(future.globals.maxSize=Inf)
+plan(multiprocess)
+
 options(warn=-1)
 options(shiny.usecairo=FALSE)
+
 numpy     <-  NULL
 vaex      <-  NULL
 gc_python <-  NULL
 
-#.onLoad<-function(libname,pkgname){
 
-#  if(reticulate::py_available(initialize = TRUE)){
+vaex       <-reticulate::import("vaex", convert  =  FALSE)
+numpy      <-reticulate::import("numpy", convert =  FALSE)
+gc_python  <-reticulate::import("gc", convert  =  FALSE)
 
-      vaex     <-reticulate::import("vaex", convert  =  FALSE)
-#    if(reticulate::py_module_available("numpy")){
-      numpy    <-reticulate::import("numpy", convert =  FALSE)
-#    }
-#    if(reticulate::py_module_available("vaex")){
-#    }
-#    if(reticulate::py_module_available("vaex")){
-     gc_python<-reticulate::import("gc", convert  =  FALSE)
-#    }
-#  }
-#}
+     
 InitPlot<-read.table(gzfile(paste0(system.file("scSVA",package="scSVA"),"/scSVA.txt.gz")),
                      header = T,
                      sep    = ",")
 
-ds <-  vaex$from_arrays(x       =numpy$array(InitPlot$X),
-                        y       =numpy$array(InitPlot$Y),
-                        Gene    =numpy$array(InitPlot$Gene),
-                        clusters=numpy$array(InitPlot$Cluster))
+ds <-  vaex$from_arrays(x        = numpy$array(InitPlot$X),
+                        y        = numpy$array(InitPlot$Y),
+                        Gene     = numpy$array(InitPlot$Gene),
+                        clusters = numpy$array(InitPlot$Cluster))
 
+termOut <- NULL
+vm      <- NULL
+tag     <- NULL
+
+Parameters.FA_3D <- NULL
+FLE_dist         <- NULL
+Parameters.DMap  <- NULL
+Parameters.NNG   <- NULL
+
+modes <- getAceModes()
+themes <- getAceThemes()
+tmpdir<-tempdir()
+#https://en.wikipedia.org/wiki/List_of_Crayola_crayon_colors
 list.colors<-list(
   Crayola.12  =  c("#000000","#0066FF","#AF593E","#01A368","#FF861F","#ED0A3F","#FF3F34","#76D7EA","#8359A3","#FFFFFF","#FBE870","#C5E17A"),
   Crayola.24  =  c("#000000","#0066FF","#AF593E","#01A368","#FF861F","#ED0A3F","#FF3F34","#76D7EA","#8359A3","#FFFFFF","#FBE870","#C5E17A",
@@ -145,4 +163,40 @@ plot_palette  <-  function(list.cols,
        col     =  list.cols,
        border  =  border)
 }
+
+#Violin plots
+StatChull <- ggproto("StatChull", Stat,
+                     compute_group = function(data, scales) {
+                       tmp<-rbind(data.frame(x=data$y,y=data$x),
+                                  data.frame(x=-rev(data$y),y=rev(data$x)))
+                       #   tmp<-rbind(data.frame(x=tmp$x,y=tmp$y,col=rep(0,length(tmp$x))),
+                       #           data.frame(x=tmp$x,y=tmp$y,col=rep(1,length(tmp$x))),
+                       #      )
+                       #   tmp$col=factor(tmp$col)
+                       tmp
+                     },
+                     default_aes = aes(weight = 1, colour = "grey20", fill = "white", size = 0.5,
+                                       alpha = NA, linetype = "solid"),
+                     
+                     required_aes = c("x", "y")
+)
+
+stat_chull <- function(mapping = NULL, data = NULL, geom = "polygon",
+                       position = "identity", na.rm = FALSE, show.legend = NA, 
+                       inherit.aes = TRUE, ...) {
+  layer(
+    stat = StatChull, data = data, mapping = mapping, geom = geom, 
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
+
+
+
+
+
+
+
+
 

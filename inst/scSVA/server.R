@@ -32,7 +32,7 @@ server <- function(input, output, session) {
     polygon_gBa     =  FALSE,
     cluster_labels  =  data.frame(i = 0.0, j = 0.0,ID = NA),
     cluster_df      =  data.frame(i = 0.0, j = 0.0,x = 0.0, Cluster_ID = 0 ),
-    cluster_stat    =  data.frame(ID=0,Ncells=0,Mean=0.0,Median=0.0,SD=0.0, stringsAsFactors = F),
+    cluster_stat    =  data.frame(ID=0,Ncells=0,Mean=0.0,Median=0.0,SD=0.0, Q1=0.0, Q3=0.0,stringsAsFactors = F),
     loaded_feature  =  "",
     initialize      =  TRUE,
     cluster_colors  =  NULL,
@@ -44,28 +44,66 @@ server <- function(input, output, session) {
     df              =  NULL,
     GeneNames       =  NULL,
     modify_plot     =  NULL,
-    inputFiles      =  list(XY=NULL,Genes=NULL,Clusters=NULL,Gene.Names=NULL),
-    featureList     =  list(XY=NULL,Genes=NULL,Clusters=NULL,Gene.Names=NULL),
+    inputFiles      =  list(XY=NULL,Genes=NULL,Clusters=NULL,Gene.Names=NULL,XYZ=NULL,Cluster.Names=NULL),
+    EM              =  NULL,
+    featureList     =  list(XY=NULL,Genes=NULL,Clusters=NULL,Gene.Names=NULL,XYZ=NULL,Cluster.Names=NULL),
+    inputFiles_GCP  =  list(FILES=NULL),
+    ClusterNames    =  NULL,
     ColPalette      =  NULL,
     InitColPalette  =  FALSE,
-    Cols            =  FALSE
+    Cols            =  FALSE,
+    X_3d            =  NULL,
+    Y_3d            =  NULL,
+    Z_3d            =  NULL,
+    trans_3d        = FALSE,
+    data_3d         = NULL,
+    p_3d            = NULL,
+    load_3d         = FALSE,
+    Cols3D          = FALSE,
+    load_xy         = FALSE,  
+    load_clust      = FALSE,
+    FLE_dist        = FALSE,
+    FLE_progress    = FALSE,
+    gcp_dir                = "/",
+    gcp_selected_dir       = "",
+    gcp_files_indir        = "",
+    gcp_selected_files     = "",
+    local_path_edited_file = "",
+    FS_ls_1         = data.frame(Content = NULL,stringsAsFactors = F),
+    FS_ls_2         = data.frame(Content = NULL,stringsAsFactors = F),
+    path_FS_1       = "/",
+    path_FS_2       = "/",
+    list_plots      = list()
   )
-
+  
+  #volumes = c(Computer = getwd())
   volumes = getVolumes()
-  shinyFileChoose(input, 'inputFile_XY',          roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','loom','LOOM','csv','CSV','tsv','TSV','txt','TXT','gz'))
-  shinyFileChoose(input, 'inputFile_Genes',       roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','loom','LOOM','gz'))
-  shinyFileChoose(input, 'inputFile_Clusters',    roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','loom','LOOM','csv','CSV','tsv','TSV','txt','gz'))
-  shinyFileChoose(input, 'inputFile_GenesVector', roots = volumes, filetypes=c('', 'csv','CSV','tsv','TSV','txt','gz'))
-
-  updateNumericInput(session = session,inputId = "n_workers",value = parallel::detectCores())
+  shinyFileChoose(input, 'inputFile_XY',               roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','h5ad','H5AD','loom','LOOM','csv','CSV','tsv','TSV','txt','TXT','gz'))
+  shinyFileChoose(input, 'inputFile_Genes',            roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','h5ad','H5AD','loom','LOOM','gz'))
+  shinyFileChoose(input, 'inputFile_Clusters',         roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','h5ad','H5AD','loom','LOOM','csv','CSV','tsv','TSV','txt','gz'))
+  shinyFileChoose(input, 'inputFile_GenesVector',      roots = volumes, filetypes=c('', 'csv','CSV','tsv','TSV','txt','gz'))
+  shinyFileChoose(input, 'inputFile_XYZ',              roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','h5ad','H5AD','loom','LOOM','csv','CSV','tsv','TSV','txt','TXT','gz'))
+  shinyFileChoose(input, 'selectFiles_toVM',           roots = volumes)#, defaultPath = getwd())
+  shinyFileChoose(input, 'inputFile_ClusterNames', roots = volumes, filetypes=c('', 'h5','H5','hdf5','HDF5','h5ad','H5AD','loom','LOOM','csv','CSV','tsv','TSV','txt','TXT','gz'))
+  
+  updateNumericInput(session = session,inputId = "n_workers",value = as.integer(availableCores()))
   updateSelectizeInput(session,"pal",choices=c(dens_cols))
+  updateSelectizeInput(session,"pal_3d",choices=c(dens_cols))
 
+  observeEvent(input$selectFiles_toVM, {
+    vals$inputFiles_GCP$FILES  <- as.character(parseFilePaths(volumes, input$selectFiles_toVM)$datapath)
+  })
+  
+  observeEvent(input$inputFile_ClusterNames, {
+    vals$inputFiles$Cluster.Names  <- as.character(parseFilePaths(volumes, input$inputFile_ClusterNames)$datapath)
+  })
+  
   observeEvent(input$inputFile_XY, {
     vals$inputFiles$XY  <- as.character(parseFilePaths(volumes, input$inputFile_XY)$datapath)
   })
-
+  
   observeEvent(input$inputFile_Genes, {
-    vals$inputFiles$Genes <- as.character(parseFilePaths(volumes, input$inputFile_Genes)$datapath)
+    vals$EM <- as.character(parseFilePaths(volumes, input$inputFile_Genes)$datapath)
   })
 
   observeEvent(input$inputFile_GenesVector, {
@@ -75,9 +113,46 @@ server <- function(input, output, session) {
   observeEvent(input$inputFile_Clusters, {
     vals$inputFiles$Clusters <- as.character(parseFilePaths(volumes, input$inputFile_Clusters)$datapath)
   })
-
+  
+  observeEvent(input$inputFile_XYZ, {
+    vals$inputFiles$XYZ  <- as.character(parseFilePaths(volumes, input$inputFile_XYZ)$datapath)
+    print(vals$inputFiles$XYZ)
+  })
+  
+  
+   output$file_cont_XYZ <- renderDataTable({
+    if(!is.null(vals$inputFiles$XYZ)){
+      if(input$inputFileType_XYZ  ==  "HDF5"){
+        choices  =  h5ls(vals$inputFiles$XYZ)
+        ind      =  grep("H5I_DATASET",choices$otype)
+        if(unique(choices$group[ind])=="/"){
+          updateSelectizeInput(session,"X_coord_3d",choices=paste0(choices$group[ind],choices$name[ind]))
+          updateSelectizeInput(session,"Y_coord_3d",choices=paste0(choices$group[ind],choices$name[ind]))
+          updateSelectizeInput(session,"Z_coord_3d",choices=paste0(choices$group[ind],choices$name[ind]))
+          } else {
+          updateSelectizeInput(session,"X_coord_3d",choices=paste0(choices$group[ind],"/",choices$name[ind]))
+          updateSelectizeInput(session,"Y_coord_3d",choices=paste0(choices$group[ind],"/",choices$name[ind]))
+          updateSelectizeInput(session,"Z_coord_3d",choices=paste0(choices$group[ind],"/",choices$name[ind]))
+        }
+      DT::datatable(choices,options = list(scrollY = "150px",dom = 't'),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XYZ))
+      }
+      else if(input$inputFileType_XYZ  ==  "CSV"){
+        if(summary(file(vals$inputFiles$XYZ))$class  ==  "gzfile"){
+          vals$featureList$XYZ  <-  names(fread(paste0('gunzip -cq  ',gsub(" ","\\ ",vals$inputFiles$XYZ,fixed=T),' | head -n1'),nrows = 0))
+          } else {
+          vals$featureList$XYZ  <-  names(fread(input =vals$inputFiles$XYZ,nrows = 0))
+          }
+        updateSelectizeInput(session,"X_coord_3d",choices=vals$featureList$XYZ)
+        updateSelectizeInput(session,"Y_coord_3d",choices=vals$featureList$XYZ)
+        updateSelectizeInput(session,"Z_coord_3d",choices=vals$featureList$XYZ)
+        
+        DT::datatable(data.frame(Features=vals$featureList$XYZ),
+                      options = list(scrollY = "150px",dom = 't'),
+                      rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XYZ))
+      }
+    }
+  }) 
   output$file_cont_XY <- renderDataTable({
-
     if(!is.null(vals$inputFiles$XY)){
       if(input$inputFileType_XY  ==  "HDF5"){
         choices  =  h5ls(vals$inputFiles$XY)
@@ -107,9 +182,9 @@ server <- function(input, output, session) {
   })
 
   output$file_cont_Genes <- renderDataTable({
-    if(!is.null(vals$inputFiles$Genes)){
+    if(!is.null(vals$EM)){
       if(input$inputFileType_Genes  ==  "HDF5"){
-        choices  =  h5ls(vals$inputFiles$Genes)
+        choices  =  h5ls(vals$EM)
 
         if(input$h5_type  ==  "D"){
           ind  =  grep("H5I_DATASET",choices$otype)
@@ -133,10 +208,10 @@ server <- function(input, output, session) {
         DT::datatable(choices,
                       options  = list(scrollY = "150px",dom = 't'),
                       rownames = FALSE,
-                      caption  = paste0("File: ",vals$inputFiles$Genes))
+                      caption  = paste0("File: ",vals$EM))
       }
       else if(input$inputFileType_Genes  ==  "CSV"){
-        DT::datatable(data.frame(data.frame(Files=c(paste0("Expression matrix: ",vals$inputFiles$Genes),
+        DT::datatable(data.frame(data.frame(Files=c(paste0("Expression matrix: ",vals$EM),
                                                     paste0("Gene Names: ",vals$inputFiles$Gene.Names)))),
                       options  = list(scrollY = "150px",dom = 't'),
                       rownames = FALSE)
@@ -171,11 +246,40 @@ server <- function(input, output, session) {
     }
   })
 
+output$file_cont_ClusterNames <- renderDataTable({
+    if(!is.null(vals$inputFiles$Cluster.Names)){
+      print(vals$inputFiles$Cluster.Names)
+      if(input$inputFileType_ClusterNames  ==  "HDF5"){
+        choices  =  h5ls(vals$inputFiles$Cluster.Names)
+        ind      =  grep("H5I_DATASET",choices$otype)
+        if(unique(choices$group[ind])  ==  "/"){
+          updateSelectizeInput(session,"inputClusterNames",choices=paste0(choices$group[ind],choices$name[ind]))
+        } else {
+          updateSelectizeInput(session,"inputClusterNames",choices=paste0(choices$group[ind],"/",choices$name[ind]))
+        }
+        DT::datatable(choices,options = list(scrollY = "150px",dom = 't'),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$Cluster.Names))
+      }
+      else if(input$inputFileType_ClusterNames  ==  "CSV"){
+        if(summary(file(vals$inputFiles$Cluster.Names))$class  ==  "gzfile"){
+          vals$featureList$Cluster.Names<-names(fread(paste0('gunzip -cq  ',gsub(" ","\\ ",vals$inputFiles$Cluster.Names,fixed=T),' | head -n1'),nrows = 0))
+        } else {
+          vals$featureList$Cluster.Names  <-  names(fread(input =vals$inputFiles$Cluster.Names,nrows = 0))
+        }
+        updateSelectizeInput(session,"inputClusterNames",choices=vals$featureList$Cluster.Names)
+        DT::datatable(data.frame(Features=vals$featureList$Cluster.Names),
+                      options   = list(scrollY = "150px",dom = 't'),
+                      rownames  = FALSE,
+                      caption   = paste0("File: ",vals$inputFiles$Cluster.Names))
+      }
+    }
+  })
+  
+  
   observeEvent(input$colCluster, {
     vals$cluster_colors[input$cluster_id]  <-  input$colCluster
   })
 
-  observeEvent(input$load_datasets, {
+  observeEvent(input$load_dataset_XY, {
 #XY coordinates
     if(input$inputFileType_XY  ==  "HDF5"){
       withProgress(message = 'Loading X-coordinate',value = 0.25, {
@@ -204,10 +308,23 @@ server <- function(input, output, session) {
         ds$add_column('y',data = numpy$array(fread(vals$inputFiles$XY,
                                                     header = F,
                                                     select = c(which(vals$featureList$XY==input$Y_coord)),skip=1)[[1]]))
-      }
-      })
-    }
+      }})}
+        gc()
+        gc_python$collect()
+        vals$X    <- c(py_to_r(ds$min('x')),py_to_r(ds$max('x')))
+        vals$Y    <- c(py_to_r(ds$min('y')),py_to_r(ds$max('y')))
+        vals$trans       =  TRUE
+        vals$initialize  =  TRUE  
+        vals$load_xy<-TRUE
+        if(input$plot_expression){
+        updateTextInput(session     = session,inputId = "choose_gene",    value ="")
+        updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
+        }
+  })
+  
+observeEvent(input$load_dataset_GE, {  
 #Cell Features
+    vals$inputFiles$Genes<-vals$EM
     if(input$inputFileType_Genes  ==  "HDF5"){
 
       if(input$h5_type  ==  "D"){
@@ -253,6 +370,9 @@ server <- function(input, output, session) {
       })
       }
     }
+}) 
+  
+observeEvent(input$load_dataset_CL, {  
     if(input$inputFileType_Clusters  ==  "HDF5"){
       withProgress(message = 'Loading Clusters',value = 1, {
       ds$add_column('clusters',data = numpy$array(h5read(vals$inputFiles$Clusters, input$inputClusters)))})
@@ -270,20 +390,143 @@ server <- function(input, output, session) {
       }
       })
     }
+   vals$load_clust<-TRUE
+})
+ 
+observeEvent(input$load_dataset_ClusterNames, {  
+  if(input$inputFileType_ClusterNames  ==  "HDF5"){
+    withProgress(message = 'Loading Cluster Names',value = 1, {
+     vals$ClusterNames<- h5read(vals$inputFiles$Cluster.Names, input$inputClusterNames)})
+  }
+  else if(input$inputFileType_ClusterNames  ==  "CSV"){
+    withProgress(message = 'Loading Cluster Names',value = 1, {
+      if(summary(file(vals$inputFiles$Cluster.Names))$class  ==  "gzfile"){
+        vals$ClusterNames<-fread(paste0('gunzip -cq  ',gsub(" ","\\ ",vals$inputFiles$Cluster.Names,fixed=T)),
+                                                          header = F,
+                                                          select = c(which(vals$featureList$Cluster.Names==input$inputClusterNames)),skip=1)[[1]]
+      } else {
+        vals$ClusterNames<-fread(vals$inputFiles$Clusters,
+                                                          header = F,
+                                                          select = c(which(vals$featureList$Cluster.Names==input$inputClusterNames)),skip=1)[[1]]
+      }
+    })
+  }
+  if(input$plot_clusters & input$show_clusters) {vals$cluster_labels$ID<-vals$ClusterNames}
+})
+
+
+   observeEvent(input$load_datasets_3d, {
+#XY coordinates
+    if(input$inputFileType_XYZ  ==  "HDF5"){
+      tmp=h5read(vals$inputFiles$XYZ, input$X_coord_3d)
+      if(ds$length()!=length(tmp)){
+        if(input$show_clusters | input$plot_clusters | input$plot_expression) {
+          updateCheckboxInput(session = session,inputId = "show_clusters",value = FALSE)
+          updateCheckboxInput(session = session,inputId = "plot_clusters",value = FALSE)
+          updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
+        }
+        ds <<- vaex$from_arrays(x=numpy$array(tmp))
+        ds$add_virtual_column("x3d", "x")
+        ds$add_column('y',data = numpy$array(h5read(vals$inputFiles$XYZ, input$Y_coord_3d)))
+        ds$add_virtual_column("y3d", "y")
+        ds$add_column('z3d',data = numpy$array(h5read(vals$inputFiles$XYZ, input$Z_coord_3d)))
+      } else {
+      withProgress(message = 'Loading X-coordinate',value = 0.25, {
+      ds$add_column('x3d',data = numpy$array(tmp))})
+      withProgress(message = 'Loading Y-coordinate',value = 0.5, {
+      ds$add_column('y3d',data = numpy$array(h5read(vals$inputFiles$XYZ, input$Y_coord_3d)))})
+      withProgress(message = 'Loading Z-coordinate',value = 0.75, {
+      ds$add_column('z3d',data = numpy$array(h5read(vals$inputFiles$XYZ, input$Z_coord_3d)))})
+      }
+    }
+    else if(input$inputFileType_XYZ  ==  "CSV"){
+      withProgress(message = 'Loading X-coordinate',value = 0.25, {
+      if(summary(file(vals$inputFiles$XYZ))$class  ==  "gzfile"){
+        tmp=fread(paste0('gunzip -cq  ',gsub(" ","\\ ",vals$inputFiles$XYZ,fixed=T)),
+                                                      header = F,
+                                                      select = c(which(vals$featureList$XYZ==input$X_coord_3d)),skip=1)[[1]] 
+        if(ds$length()!=length(tmp)){
+          if(input$show_clusters | input$plot_clusters | input$plot_expression) {
+            updateCheckboxInput(session = session,inputId = "show_clusters",value = FALSE)
+            updateCheckboxInput(session = session,inputId = "plot_clusters",value = FALSE)
+            updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
+          }
+          ds <<- vaex$from_arrays(x=numpy$array(tmp))
+          ds$add_virtual_column("x3d", "x")
+        } else {
+          ds$add_column('x3d',data = numpy$array(tmp)) 
+        }
+      } else {
+        tmp=fread(vals$inputFiles$XYZ,
+                  header = F,
+                  select = c(which(vals$featureList$XYZ==input$X_coord_3d)),skip=1)[[1]]
+        if(ds$length()!=length(tmp)){
+          if(input$show_clusters | input$plot_clusters | input$plot_expression) {
+            updateCheckboxInput(session = session,inputId = "show_clusters",value = FALSE)
+            updateCheckboxInput(session = session,inputId = "plot_clusters",value = FALSE)
+            updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
+          }
+          ds <<- vaex$from_arrays(x=numpy$array(tmp))
+          ds$add_virtual_column("x3d", "x")
+        } else {
+          ds$add_column('x3d',data = numpy$array(tmp)) 
+        }
+      }
+      })
+      withProgress(message = 'Loading Y-coordinate',value = 0.25, {
+      if(summary(file(vals$inputFiles$XYZ))$class  ==  "gzfile"){
+        ds$add_column('y',data = numpy$array(fread(paste0('gunzip -cq  ',gsub(" ","\\ ",vals$inputFiles$XYZ,fixed=T)),
+                                                    header = F,
+                                                    select = c(which(vals$featureList$XYZ==input$Y_coord_3d)),skip=1)[[1]]))
+        ds$add_virtual_column("y3d", "y")
+      } else {
+        ds$add_column('y',data = numpy$array(fread(vals$inputFiles$XYZ,
+                                                    header = F,
+                                                    select = c(which(vals$featureList$XYZ==input$Y_coord_3d)),skip=1)[[1]]))
+        ds$add_virtual_column("y3d", "y")
+      }
+      })
+      withProgress(message = 'Loading Z-coordinate',value = 0.25, {
+        if(summary(file(vals$inputFiles$XYZ))$class  ==  "gzfile"){
+          ds$add_column('z3d',data = numpy$array(fread(paste0('gunzip -cq  ',gsub(" ","\\ ",vals$inputFiles$XYZ,fixed=T)),
+                                                     header = F,
+                                                     select = c(which(vals$featureList$XYZ==input$Z_coord_3d)),skip=1)[[1]]))
+        } else {
+          ds$add_column('z3d',data = numpy$array(fread(vals$inputFiles$XYZ,
+                                                     header = F,
+                                                     select = c(which(vals$featureList$XYZ==input$Z_coord_3d)),skip=1)[[1]]))
+        }
+      })
+    }
     gc()
     gc_python$collect()
-    vals$X    <- c(py_to_r(ds$min('x')),py_to_r(ds$max('x')))
-    vals$Y    <- c(py_to_r(ds$min('y')),py_to_r(ds$max('y')))
-    vals$trans       =  TRUE
-    vals$initialize  =  TRUE
-    if(input$plot_expression){
-      updateTextInput(session     = session,inputId = "choose_gene",    value ="")
-      updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
-    }
+    vals$X_3d    <- c(py_to_r(ds$min('x3d')),py_to_r(ds$max('x3d')))
+    vals$Y_3d    <- c(py_to_r(ds$min('y3d')),py_to_r(ds$max('y3d')))
+    vals$Z_3d    <- c(py_to_r(ds$min('z3d')),py_to_r(ds$max('z3d')))
+    
+    vals$load_3d        =  TRUE
+    vals$trans_3d       =  TRUE
+    vals$plot.ID        =  1
+    vals$trans           <- TRUE
+    vals$initialize      <- TRUE
+    vals$X               <- c(py_to_r(ds$min('x')),py_to_r(ds$max('x')))
+    vals$Y               <- c(py_to_r(ds$min('y')),py_to_r(ds$max('y')))
+    vals$group_Adist     =  NULL
+    vals$group_Bdist     =  NULL
+    vals$Ncells_Group_A  =  0
+    vals$Ncells_Group_B  =  0
+    vals$gAa             =  FALSE
+    vals$gBa             =  FALSE
+    vals$polygon         <- NULL
+    Summary_Stat         =  data.frame(Mean = 0.0, Median = 0.0,SD = 0.0,stringsAsFactors = F)
+    #if(input$plot_expression){
+    #  updateTextInput(session     = session,inputId = "choose_gene",    value ="")
+    #  updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
+    #}
 
   })
+  
   observeEvent(input$choose_gene, {
-
     if(input$choose_gene != ""){
       if(input$inputFileType_Genes  ==  "HDF5"){
         if(input$h5_type  ==  "D"){
@@ -366,6 +609,23 @@ server <- function(input, output, session) {
     return(list(min=min_slider,max=max_slider))
   }
 
+  update_slider_3d<-function(){
+    if(input$scale_colorbar_3d){
+      min_slider  =  log10(min(vals$data_3d$x[vals$data_3d$x>0]))
+      max_slider  =  log10(max(vals$data_3d$x[vals$data_3d$x>0]))
+    } else {
+      min_slider  =  min(vals$data_3d$x)
+      max_slider  =  max(vals$data_3d$x)
+    }
+    updateSliderInput(session,
+                      "ColorbarRange3D",
+                      value = round(c(min_slider,max_slider),3),
+                      min   = round(min_slider,3),
+                      max   = round(max_slider,3),
+                      step  = round((max_slider-min_slider)/100,3))
+    return(list(min=min_slider,max=max_slider))
+  }
+  
   observeEvent(input$dens_scale,{
     tmp       = update_slider()
     vals$Cols <- c(tmp$min,tmp$max)
@@ -473,24 +733,32 @@ server <- function(input, output, session) {
                                  Cluster_ID  ==  input$cluster_id)
     }
 
-    ggplot(vals$data, aes(x = i, y = j,colour = if(input$dens_scale){log10(x)} else{x}))+
+    ggplot(vals$data, aes(x = i, y = j,colour = if(input$show_legend_clusters){as.factor(vals$cluster_df$Cluster_ID)}else{if(input$dens_scale){log10(x)} else{x}}))+
     {if(input$show_clusters & vals$CompClusFin) {
+      if(input$show_legend_clusters){
       geom_point(data    =  vals$cluster_df,
                  size    =  input$ps,
                  alpha   =  input$transparency,
-                 shape   =  ifelse(input$point_shape,15,19),
-                 colour  =  if(input$dichromat  !=  "No"){
-                              dichromat(vals$cluster_colors[vals$cluster_df$Cluster_ID],
-                                        input$dichromat)
-                            }
-                 else{vals$cluster_colors[vals$cluster_df$Cluster_ID]})
+                 shape   =  ifelse(input$point_shape,15,19)#,
+      )
+      } else {
+        geom_point(data    =  vals$cluster_df,
+                   size    =  input$ps,
+                   alpha   =  input$transparency,
+                   shape   =  ifelse(input$point_shape,15,19),
+                   colour  =  if(input$dichromat  !=  "No"){
+                                  dichromat(vals$cluster_colors[vals$cluster_df$Cluster_ID],
+                                            input$dichromat)
+                              }
+                              else{vals$cluster_colors[vals$cluster_df$Cluster_ID]})
+        }
      }else{
       geom_point(size   =  input$ps,
                  alpha  =  input$transparency,
                  shape  =  ifelse(input$point_shape,15,19))
     }}+
     {if(input$highlight_cluster) geom_point(data    =  vals$cluster_h,
-                                            size    =  input$ps*15,
+                                            size    =  input$ps*5,
                                             alpha   =  input$transparency,
                                             shape   =  ifelse(input$point_shape,15,19),
                                             colour  =  vals$cluster_colors[input$cluster_id])
@@ -576,7 +844,7 @@ server <- function(input, output, session) {
                                   label.size       =  input$annotation_labelSize,
                                   label.r          =  unit(input$annotation_radiusCorners, "lines"))
    }+
-   {if(input$plot_clusters){
+   {if(input$show_label_clusters){
       if(input$repel_labels){
         subset_labels  =  subset(vals$cluster_labels, i>=vals$X[1] & i<=vals$X[2] & j>=vals$Y[1] & j<=vals$Y[2])
           if(input$show_text) {
@@ -628,13 +896,27 @@ server <- function(input, output, session) {
           }
       }
     }}+
-    {scale_colour_gradientn(name     =  input$clegend,
+    {if(input$show_legend_clusters) {
+      ind<-unique(vals$cluster_df$Cluster_ID)
+      #subset_labels  = subset(vals$cluster_labels, i>=vals$X[1] & i<=vals$X[2] & j>=vals$Y[1] & j<=vals$Y[2])
+      scale_colour_manual(name=input$legend_title_clusters,
+                          values=if(input$dichromat  !=  "No"){
+                                     dichromat(vals$cluster_colors,
+                                              input$dichromat)
+                                   }
+                                 else{vals$cluster_colors[ind]},
+                          labels=vals$cluster_labels$ID[ind])
+    } else {scale_colour_gradientn(name     =  input$clegend,
                             limits   =  vals$Cols,
                             oob      =  squish,
                             colours  =  get_colors(input$pal,
                                                    input$dichromat  !=  "No",
                                                    input$dichromat,
-                                                   vals$n.cols))}+
+                                                   vals$n.cols))}}+
+    {if(input$show_legend_clusters) {guides(color = guide_legend(ncol  = input$legend_ncol_clusters,
+                                                                 byrow = input$legend_byrow,
+                                                                 override.aes = list(size=input$legend_point_size)))}}+
+    {if(input$show_legend_clusters) {theme(legend.position = input$legend_position, legend.key = element_blank())}}+
     coord_cartesian(xlim = vals$X, ylim = vals$Y)
   })
 
@@ -790,7 +1072,7 @@ server <- function(input, output, session) {
   })
 
   output$table_clusters <- DT::renderDataTable(datatable({plyr::rename(vals$cluster_labels,
-                                                                       c("i"  =  input$x_axis,"j"  =  input$y_axis))},
+                                                                       c("i"  =  input$x_axis,"j"  =  input$y_axis,"ID" = "Label"))},
                                                editable  =  TRUE,
                                                options   =  list(paging = FALSE,scrollY = "250px")) %>% formatRound(c(input$x_axis,input$y_axis), 3))
 
@@ -805,7 +1087,7 @@ server <- function(input, output, session) {
   })
 
   output$table1 <- DT::renderDataTable(datatable({plyr::rename(vals$Annotation.data,
-                                                               c("i"  =  input$x_axis,"j"  =  input$y_axis))},
+                                                               c("i"  =  input$x_axis,"j"  =  input$y_axis, "Annotation" = "Label"))},
                                        editable  =  TRUE,
                                        options   =  list(pageLength = 100,scrollY = "250px")) %>% formatRound(c(input$x_axis,input$y_axis), 3))
 
@@ -1004,15 +1286,26 @@ server <- function(input, output, session) {
     vals$cluster_labels=data.frame(i = 0.0, j = 0.0,ID = NA)
     }
   })
-
+  
+  observeEvent(input$show_legend_clusters, {
+      updateTextInput(session, "showlegend", value = T)  
+    })
+  
   observeEvent(input$show_clusters, {
     if(input$show_clusters){
+      if(!vals$load_clust & vals$load_xy){
+        showNotification("Load Cluster Data",type = "warning",duration = 10)
+        updateCheckboxInput(session,inputId = "show_clusters",value = FALSE) 
+        return()
+        }
       updateTextInput(session, "showlegend", value = FALSE)
       updateTextInput(session, "title",      value="")
       vals$plot.ID  =  3
       vals$trans    <- TRUE
     } else {
     updateTextInput(session, "showlegend", value = TRUE)
+    updateCheckboxInput(session,inputId = "show_legend_clusters",value = FALSE)  
+    updateCheckboxInput(session,inputId = "show_label_clusters",value = FALSE)  
     if(input$plot_expression){
        vals$plot.ID  =  2
        updateTextInput(session,"title",value=vals$loaded_feature)
@@ -1079,7 +1372,12 @@ server <- function(input, output, session) {
 
   observeEvent(input$get_exp_clusters, {
     if(input$get_exp_clusters  & !input$plot_clusters) {
-      showNotification("Load cluster labels first:  Metadata -> Clusters -> Get Cluster Label Positions",type = "warning",duration = 10)
+      showNotification("Load cluster labels:  Metadata -> Clusters -> Get Cluster Label Positions",type = "warning",duration = 10)
+      updateCheckboxInput(session, "get_exp_clusters", value = FALSE)
+      return()
+    }
+    if(input$get_exp_clusters  & !input$plot_expression) {
+      showNotification("Select a Gene:  Analysis -> Cell Abundance & Gene Expression -> Select a Gene",type = "warning",duration = 10)
       updateCheckboxInput(session, "get_exp_clusters", value = FALSE)
       return()
     }
@@ -1093,11 +1391,13 @@ server <- function(input, output, session) {
                                                 Mean    =  py_to_r(ds$mean("Gene",selection=TRUE)),
                                                 Median  =  py_to_r(ds$median_approx('Gene',selection=TRUE)),
                                                 SD      =  py_to_r(ds$std('Gene',selection=TRUE)),
+                                                Q1      =  py_to_r(ds$percentile_approx("Gene", 25,selection=TRUE)),
+                                                Q3      =  py_to_r(ds$percentile_approx("Gene", 75,selection=TRUE)),
                                                 stringsAsFactors = F))
           incProgress(1/vals$N.clusters)
       }
       vals$cluster_stat        <-  vals$cluster_stat[-1,]
-      vals$cluster_stat[,3:5]  <-  round(vals$cluster_stat[,3:5],digits=5)
+      vals$cluster_stat[,3:7]  <-  round(vals$cluster_stat[,3:7],digits=5)
     })
     } else {
       vals$cluster_stat  =  data.frame(ID     =  0,
@@ -1105,12 +1405,14 @@ server <- function(input, output, session) {
                                        Mean   =  0.0,
                                        Median =  0.0,
                                        SD     =  0.0,
+                                       Q1     =  0.0,
+                                       Q3     =  0.0,
                                        stringsAsFactors = F)
     }
   })
 
   output$table_exp.in.clusters <- DT::renderDataTable({DT::datatable(vals$cluster_stat,
-                                                         options  =  list(paging = FALSE,scrollY = "500px"),
+                                                         options  =  list(paging = FALSE,scrollY = "500px",columnDefs =list(list(visible=FALSE, targets=c(5,6)))),
                                                          caption  =  vals$loaded_feature,
                                                          filter   =  'bottom',
                                                          rownames =  FALSE) %>%
@@ -1120,7 +1422,7 @@ server <- function(input, output, session) {
                                                                         interval  = 3,
                                                                         mark      = ","
                                                                         ) %>%
-                                                         formatRound(c("Mean","Median","SD"), 3)})
+                                                         formatRound(c("Mean","Median","SD","Q1","Q3"), 3)})
 
   output$plot_GEDistGroupA <- renderPlotly({
     if(input$plot_expression & !is.null(vals$group_Adist)){
@@ -1156,7 +1458,27 @@ server <- function(input, output, session) {
     }
   })
 
-  output$plot_DistGEinCluster = renderPlotly({
+  output$plot_DistGEinCluster_Census = renderPlotly({
+      if(input$get_exp_clusters){
+        cols=vals$cluster_colors
+        colList=list()
+        for(i in 1:length(cols)){colList[[i]]<-c((i-1)/(length(cols)-1),cols[i])}  
+        plot_ly(vals$cluster_stat, 
+                labels = ~ID, 
+                values = ~Ncells,
+                marker = list(colors = vals$cluster_colors,
+                              line = list(color = '#FFFFFF', width = 1)),
+                type = 'pie') %>%
+          layout(title = 'Population by Cluster',
+                 xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                 yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+      } else {
+               plotly_empty()
+      }
+  })
+  
+  
+  output$plot_DistGEinCluster_Density = renderPlotly({
     if(input$get_exp_clusters){
       s  =  input$table_exp.in.clusters_rows_selected
       if(length(s)){
@@ -1169,8 +1491,49 @@ server <- function(input, output, session) {
                                            shape      =  tuple(40L),
                                            selection  =  TRUE))
         }
-        if(input$plot_ecdf){
-          p  <-  plot_ly()
+          for(i in 1:length(s)){
+            df=data.frame(Expression   =  seq(vals$rangeE[1],vals$rangeE[2],length.out=40),
+                          Cell_Number  =  distCl[[i]]/sum(distCl[[i]]))
+            plotList[i]  <-  plot_ly(df,
+                                     x      = ~Expression,
+                                     y      = ~Cell_Number,
+                                     type   = "bar",
+                                     name   = paste0("Cluster: ",vals$cluster_labels$ID[s[i]]),
+                                     marker = list(color = vals$cluster_colors[s[i]])) %>%
+              layout(xaxis   = list(title = input$clegend),
+                     yaxis   = list(title = "Fraction of Cells",
+                                    range = c(0,input$y_axisR)),
+                     title   = input$clegend)
+          }
+          subplot(plotList,
+                  shareX  =  T,
+                  shareY  =  T,
+                  nrows   =  ceiling(length(s)/4)) %>%
+            layout(title    =  vals$loaded_feature)
+      } else {
+        plotly_empty()
+      }
+    } else {
+      plotly_empty()
+    }
+  })
+  
+  
+  
+  output$plot_DistGEinCluster_ECDF = renderPlotly({
+    if(input$get_exp_clusters){
+      s  =  input$table_exp.in.clusters_rows_selected
+      if(length(s)){
+        plotList  <-  list()
+        distCl    <-  list()
+        for(i in 1:length(s)){
+          ds$select(paste0("clusters==",s[i],""))
+          distCl[[i]]  =  py_to_r(ds$count(binby      =  tuple(ds$Gene),
+                                           limits     =  tuple(vals$rangeE[1],vals$rangeE[2]),
+                                           shape      =  tuple(40L),
+                                           selection  =  TRUE))
+        }
+            p  <-  plot_ly()
           for(i in 1:length(s)){
             p  <-  add_lines(p,
                              x      =  seq(vals$rangeE[1],vals$rangeE[2],length.out=40),
@@ -1184,27 +1547,6 @@ server <- function(input, output, session) {
                             title  =  vals$loaded_feature,
                             xaxis  =  list(title = input$clegend))
           p
-        } else {
-          for(i in 1:length(s)){
-            df=data.frame(Expression   =  seq(vals$rangeE[1],vals$rangeE[2],length.out=40),
-                          Cell_Number  =  distCl[[i]]/sum(distCl[[i]]))
-            plotList[i]  <-  plot_ly(df,
-                                     x      = ~Expression,
-                                     y      = ~Cell_Number,
-                                     type   = "bar",
-                                     name   = paste0("Cluster: ",vals$cluster_labels$ID[s[i]]),
-                                     marker = list(color = vals$cluster_colors[s[i]])) %>%
-                             layout(xaxis   = list(title = input$clegend),
-                                    yaxis   = list(title = "Fraction of Cells",
-                                                   range = c(0,input$y_axisR)),
-                                    title   = input$clegend)
-        }
-        subplot(plotList,
-                shareX  =  T,
-                shareY  =  T,
-                nrows   =  ceiling(length(s)/4)) %>%
-        layout(title    =  vals$loaded_feature)
-        }
       } else {
         plotly_empty()
       }
@@ -1212,7 +1554,82 @@ server <- function(input, output, session) {
       plotly_empty()
     }
   })
-
+ 
+  output$violin_plot = renderPlot(res = 72,{
+    if(input$get_exp_clusters){
+      s  =  input$table_exp.in.clusters_rows_selected
+      if(length(s)){
+        plotList  <-  list()
+        distCl    <-  list()
+        for(i in 1:length(s)){
+          ds$select(paste0("clusters==",s[i],""))
+          distCl[[i]]  =  py_to_r(ds$count(binby      =  tuple(ds$Gene),
+                                           limits     =  tuple(vals$rangeE[1],vals$rangeE[2]),
+                                           shape      =  tuple(40L),
+                                           selection  =  TRUE))
+        }
+        ListPlots<-list()
+        ListDFs<-list()
+        maxX<-0
+        maxY<-0
+        rotate=FALSE
+        for(i in 1:length(s)){
+          ListDFs[[i]]<-data.frame(X=seq(vals$rangeE[1],vals$rangeE[2],length.out=40),Y=smooth.spline(distCl[[i]]/sum(distCl[[i]]))$y)
+          for(j in 40:2){if(distCl[[i]][j]==0 & distCl[[i]][j-1]==0) {ListDFs[[i]]<-ListDFs[[i]][-j,]} else{break}}  
+          if(maxX<max(ListDFs[[i]]$X)) maxX=max(ListDFs[[i]]$X)
+          if(maxY<max(ListDFs[[i]]$Y)) maxY=max(ListDFs[[i]]$Y)
+        }
+        maxX<-maxX+maxX*0.25
+        for(i in 1:length(s)){  
+        if(i==1){
+          ListPlots[[i]]<-ggplot(ListDFs[[i]],aes(x=X,y=Y))+
+            stat_chull(fill=vals$cluster_colors[s[i]],colour = "black")+
+            annotate("rect", xmin=-max(ListDFs[[i]]$Y)*0.05, xmax=max(ListDFs[[i]]$Y)*0.05, 
+                     ymin=vals$cluster_stat$Q1[s[i]], ymax=vals$cluster_stat$Q3[s[i]], alpha=1, fill="grey10",color='black') +
+            annotate("point", x = 0, y = vals$cluster_stat$Median[s[i]], colour = "white") +
+            xlab(vals$cluster_labels$ID[s[i]])+
+            ylab("Expression")+ 
+            geom_hline(aes(yintercept=0))+
+            theme(panel.background = element_rect(fill=NA),
+                  #panel.grid.major.x = element_blank(),
+                  #panel.grid.minor.x = element_blank(),
+                  #axis.line.x = element_blank(),
+                  axis.title.x=if(rotate){element_text(size=10,vjust = 0.5, hjust=1,angle=90)}else{element_text(size=14)},
+                  axis.ticks.x = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.title.y = element_text(size=14),
+                  axis.line.y = element_line(),
+                  axis.text.y = element_text(size=14))+
+            ylim(0, maxX)
+        } else{
+          ListPlots[[i]]<-ggplot(ListDFs[[i]],aes(x=X,y=Y))+
+            stat_chull(fill=vals$cluster_colors[s[i]],colour = "black")+
+            annotate("rect", xmin=-max(ListDFs[[i]]$Y)*0.05, xmax=max(ListDFs[[i]]$Y)*0.05, 
+                     ymin=vals$cluster_stat$Q1[s[i]], ymax=vals$cluster_stat$Q3[s[i]], alpha=1, fill="grey10",color='black') +
+            annotate("point", x = 0, y = vals$cluster_stat$Median[s[i]], colour = "white") +
+            xlab(vals$cluster_labels$ID[s[i]])+
+            ylab("Expression")+  
+            geom_hline(aes(yintercept=0))+ 
+             theme(panel.background = element_rect(fill=NA),
+                 #panel.grid.major.x = element_blank(),
+                 #panel.grid.minor.x = element_blank(),
+                 #axis.line.x = element_blank(),
+                 text=element_text(size=14),
+                axis.ticks.x = element_blank(),
+                axis.text.x = element_blank(),
+                axis.title.y = element_blank(),
+             axis.line.y = element_blank(),
+                axis.text.y = element_blank(),
+                axis.ticks.y = element_blank())+
+            ylim(0, maxX) 
+        }}
+        p<-do.call(grid.arrange, c(ListPlots, list(nrow=1)))
+        print(p)
+      }
+      }
+  })
+  
+  
   output$table2 <- renderTable({
     if(input$plot_expression){
       vals$Summary_Stat
@@ -1230,17 +1647,16 @@ server <- function(input, output, session) {
     if(input$inputFileType_Genes  ==  "CSV"){
       if(input$n_workers  >  1){
         withProgress(message = 'Computing Gene Signature Scores',value = 0.5, {
-        BiocParallel::register(BiocParallel::MulticoreParam(progressbar  =  T,
-                                                            workers      =  input$n_workers))
-        fun<-function(x){
+        fun<-function(x,inputFilesGenes){
           scale(unlist(fread(paste0("zq ",
-                                    gsub(" ","\\ ",vals$inputFiles$Genes,fixed=T),
+                                    gsub(" ","\\ ",inputFilesGenes,fixed=T),
                                     " ",
                                     x,
                                     " |cut -f2-"),
                              stringsAsFactors = F)))
         }
-        VectSignScores  <-  rowMeans(sapply(bplapply(GeneSignature,fun),unlist))
+        inputFilesGenes   = vals$inputFiles$Genes
+        VectSignScores  <-  rowMeans(sapply(future_lapply(1:length(GeneSignature), function(x) fun(GeneSignature[x],inputFilesGenes)),unlist))
         })
       } else {
         withProgress(message = 'Computing Gene Signature',value = 0.5, {
@@ -1269,22 +1685,23 @@ server <- function(input, output, session) {
     if(input$inputFileType_Genes  ==  "HDF5"){
       if(input$n_workers  >  1){
         withProgress(message = 'Computing Gene Signature',value = 0.5, {
-          BiocParallel::register(BiocParallel::MulticoreParam(progressbar = T,
-                                                              workers     = input$n_workers))
-          fun<-function(x){
-            if(input$em_or  ==  "R"){
-            return(scale(drop(rhdf5::h5read(vals$inputFiles$Genes,
-                                            input$inputGenes,
-                                            index  =  list(which(vals$GeneNames  ==  x),NULL)))))
+          fun<-function(inputFilesGenes,inputGenes,Gene_ind,Or){
+            if(Or  ==  "R"){
+            return(scale(drop(rhdf5::h5read(inputFilesGenes,
+                                            inputGenes,
+                                            index  =  list(Gene_ind,NULL)))))
             }
-            else if(input$em_or  ==  "C"){
-            return(scale(drop(rhdf5::h5read(vals$inputFiles$Genes,
-                                            input$inputGenes,
-                                            index  =  list(NULL,which(vals$GeneNames  ==  x))))))
+            else if(Or  ==  "C"){
+            return(scale(drop(rhdf5::h5read(inputFilesGenes,
+                                            inputGenes,
+                                            index  =  list(NULL,Gene_ind)))))
             }
           }
-
-          VectSignScores  <-  rowMeans(sapply(bplapply(GeneSignature,fun),unlist))
+          ind               = match(GeneSignature,vals$GeneNames)
+          inputFilesGenes   = vals$inputFiles$Genes
+          inputGenes        = input$inputGenes
+          Or                = input$em_or
+          VectSignScores  <-  rowMeans(sapply(future_lapply(1:length(GeneSignature), function(x) fun(inputFilesGenes,inputGenes,ind[x],Or)),unlist))
         })
       } else {
         withProgress(message = 'Computing Gene Signature',value = 0.5, {
@@ -1325,9 +1742,9 @@ server <- function(input, output, session) {
     vals$loaded_feature  <-  input$GeneSetName
     updateTextInput(session,     "choose_gene",      value  =  "")
     updateCheckboxInput(session, "get_exp_clusters", value  =  FALSE)
-    if(input$plot_expression  ==  FALSE) {
+#    if(input$plot_expression  ==  FALSE) {
       updateTextInput(session,"plot_expression",value=TRUE)
-    }
+ #   }
   })
 
   output$PlotPalette <- renderPlot({
@@ -1359,6 +1776,9 @@ server <- function(input, output, session) {
     updateSelectizeInput(session,
                          "pal",
                          choices=c(dens_cols,input$NewPaletteName))
+    updateSelectizeInput(session,
+                         "pal_3d",
+                         choices=c(dens_cols,input$NewPaletteName))
     dens_cols  <<-  c(dens_cols,input$NewPaletteName)
   })
 
@@ -1387,6 +1807,1106 @@ server <- function(input, output, session) {
     updateSelectInput(session,inputId = "fonts",           choices = fonts(),selected = "Arial")
     updateSelectInput(session,inputId = "annotation_fonts",choices = fonts(),selected = "Arial")
   })
-}
+  
+  output$Plot3D <- renderPlotly({
+    if(vals$trans_3d){
+      vals$X_3d<-c(py_to_r(ds$min('x3d')),py_to_r(ds$max('x3d')));
+      vals$Y_3d<-c(py_to_r(ds$min('y3d')),py_to_r(ds$max('y3d')));
+      vals$Z_3d<-c(py_to_r(ds$min('z3d')),py_to_r(ds$max('z3d')))
+      N=input$grid_plot3D
+      withProgress(message = 'Processing on the grid',value = 0.5, {
+      if(input$display_feature=="Density"){
+      xycounts = ds$count(binby=tuple(ds$x3d,ds$y3d,ds$z3d), 
+                          limits=tuple(tuple(vals$X_3d[1],vals$X_3d[2]),
+                                       tuple(vals$Y_3d[1],vals$Y_3d[2]),
+                                       tuple(vals$Z_3d[1],vals$Z_3d[2])),
+                          shape=tuple(N,N,N),selection = FALSE)
+      tmp<-py_to_r(xycounts)
+      pl<-future_lapply(1:N, function(x) {sp<-summary(as(tmp[x,,],'dgTMatrix'));
+      sp<-sp[complete.cases(sp),];
+      sp<-cbind(h=rep(x,nrow(sp)),sp)})
+      pl<-do.call("rbind",pl)
+      vals$data_3d<-pl
+      } else if (input$display_feature=="Gene Expression/Signature" & input$choose_gene != ""){
+        xycounts = ds$count(binby=tuple(ds$x3d,ds$y3d,ds$z3d), 
+                            limits=tuple(tuple(vals$X_3d[1],vals$X_3d[2]),
+                                         tuple(vals$Y_3d[1],vals$Y_3d[2]),
+                                         tuple(vals$Z_3d[1],vals$Z_3d[2])),
+                            shape=tuple(N,N,N),selection = FALSE)
+        tmp<-py_to_r(xycounts)
+        pl<-future_lapply(1:N, function(x) {sp<-summary(as(tmp[x,,],'dgTMatrix'));
+        sp<-sp[complete.cases(sp),];
+        sp<-cbind(h=rep(x,nrow(sp)),sp)})
+        allCells<-do.call("rbind",pl)
+        if(input$select_method  ==  "Mean"){
+          xycounts = ds$mean('Gene',
+                             binby  =  tuple(ds$x3d,ds$y3d,ds$z3d),
+                             limits =  tuple(tuple(vals$X_3d[1],vals$X_3d[2]),
+                                             tuple(vals$Y_3d[1],vals$Y_3d[2]),
+                                             tuple(vals$Z_3d[1],vals$Z_3d[2])),
+                             shape  =  tuple(N,N,N),selection=FALSE)
+        }
+        else if(input$select_method=="Median"){
+          xycounts = ds$median_approx('Gene',
+                                      binby=tuple(ds$x3d,ds$y3d,ds$z3d),
+                                      limits =  tuple(tuple(vals$X_3d[1],vals$X_3d[2]),
+                                                      tuple(vals$Y_3d[1],vals$Y_3d[2]),
+                                                      tuple(vals$Z_3d[1],vals$Z_3d[2])),
+                                      shape  =  tuple(N,N,N),selection=FALSE)
+        }
+        else if(input$select_method=="Max"){
+          xycounts = ds$max('Gene',
+                            binby=tuple(ds$x3d,ds$y3d,ds$z3d),
+                            limits =  tuple(tuple(vals$X_3d[1],vals$X_3d[2]),
+                                            tuple(vals$Y_3d[1],vals$Y_3d[2]),
+                                            tuple(vals$Z_3d[1],vals$Z_3d[2])),
+                            shape  =  tuple(N,N,N),selection=FALSE)
+        }
+        tmp<-py_to_r(xycounts)
+        pl<-future_lapply(1:N, function(x) {sp<-summary(as(tmp[x,,],'dgTMatrix'));
+                                                     sp<-sp[complete.cases(sp),];
+                                                     sp<-cbind(h=rep(x,nrow(sp)),sp)})
+        pl<-do.call("rbind",pl)
+        vals$data_3d<-pl
+        
+        if(input$select_method  ==  "Max") {
+          vals$data_3d$x[!is.finite(vals$data_3d$x)]  <-  NA
+        }
+        
+        vals$data_3d  <-  vals$data_3d[complete.cases(vals$data_3d),]
+        zeros         <-  suppressMessages(dplyr::anti_join(allCells[,c(1,2,3)],vals$data_3d[,c(1,2,3)]))
+        zeros$x       <-  rep(0,nrow(zeros))
+        vals$data_3d  <-  rbind(zeros,vals$data_3d)
+      }
+      
+      
+      range_X       =  (vals$X_3d[2]-vals$X_3d[1])/input$grid_plot3D
+      range_Y       =  (vals$Y_3d[2]-vals$Y_3d[1])/input$grid_plot3D
+      range_Z       =  (vals$Z_3d[2]-vals$Z_3d[1])/input$grid_plot3D
+      
+      vals$data_3d$h   <- vals$X_3d[1]+range_X*(vals$data_3d$h-.5)
+      vals$data_3d$i   <- vals$Y_3d[1]+range_Y*(vals$data_3d$i-.5)
+      vals$data_3d$j   <- vals$Z_3d[1]+range_Z*(vals$data_3d$j-.5)
+      
+      rm(pl)
+      tmp           =  update_slider_3d()
+      vals$Cols3D   =  c(tmp$min,tmp$max)
+      vals$trans_3d=FALSE
+      
+    })
+    } 
+    f1 <- list(
+      family = "Arial, sans-serif",
+      size = input$fs_3d,
+      color = input$font_color_3d
+    )
+    f1t <- list(
+      family = "Arial, sans-serif",
+      size = input$tick_3d,
+      color = input$font_color_3d
+    )
+    f2 <- list(
+      family = "Arial, sans-serif",
+      size = input$fs_3d,
+      color = input$color_font_legend_3d
+    )
+    axx <- list(
+      title = input$x_axis_label_3d,
+      color = input$axis_color_3d,
+      titlefont = f1,
+      tickfont = f1t,
+      showgrid = input$grid_3d
+    )
+    
+    axy <- list(
+      title = input$y_axis_label_3d,
+      color = input$axis_color_3d,
+      titlefont = f1,
+      tickfont = f1t,
+      showgrid = input$grid_3d
+    )
+    
+    axz <- list(
+      title = input$z_axis_label_3d,
+      color = input$axis_color_3d,
+      titlefont = f1,
+      tickfont = f1t,
+      showgrid = input$grid_3d
+    )
+    m <- list(
+      l = 0,
+      r = 0,
+      b = 0,
+      t = 30,
+      pad = 0
+    )
+    if(vals$load_3d){
+    cols=get_colors(input$pal_3d,
+                    input$dichromat  !=  "No",
+                    input$dichromat,
+                    vals$n.cols)
+    colList=list()
+    for(i in 1:length(cols)){colList[[i]]<-c((i-1)/(length(cols)-1),cols[i])}  
 
+    vals$p_3d<-plot_ly(vals$data_3d,
+                       x      = ~h,
+                       y      = ~i,
+                       z      = ~j, 
+                       marker = list(size = input$ps_3d, 
+                                     color = if(input$scale_colorbar_3d){~log10(x)} else {~x}, 
+                                     cmin=vals$Cols3D[1],
+                                     cmax=vals$Cols3D[2],
+                                     colorscale = colList,
+                                     showscale = input$legend_3d,
+                                     colorbar=list(title=input$colorbar_3d,
+                                                   len=0.2,
+                                                   tickcolor = input$color_font_legend_3d,
+                                                   outlinecolor = input$color_font_legend_3d,
+                                                   titlefont = f2, 
+                                                   tickfont = f2,
+                                                   ticks = 'outside'),
+                                     symbol=if(input$square_points_3d) {'square'} else{'circle'},
+                                     opacity=input$points_transp_3d), 
+                       type = "scatter3d") %>%
+      layout(title=input$title_3d,
+             margin = m,
+             paper_bgcolor =input$panel_background_3d,
+             plot_bgcolor  =input$panel_background_3d,
+             scene = list(xaxis=axx,
+                          yaxis=axy,
+                          zaxis=axz,
+                          camera = list(eye = list(x = input$cv_x, 
+                                                   y = input$cv_y, 
+                                                   z = input$cv_z)
+                          )
+             ))
+    }
+    else{
+      vals$p_3d<-plotly_empty()
+    }
+    vals$p_3d
+    
+  })
+  observeEvent(input$change_colorbar_3d,{
+    vals$Cols3D  <-  input$ColorbarRange3D
+  })
+  observeEvent(input$scale_colorbar_3d,{
+    tmp       = update_slider_3d()
+    vals$Cols3D <- c(tmp$min,tmp$max)
+  })
+  observeEvent(input$reset_view_3d, {
+    vals$trans_3d<-TRUE
+  })
+  
+  observeEvent(input$display_feature, {
+    if(vals$load_3d){
+      if(input$display_feature == "Density"){
+        updateTextInput(session     = session,inputId = "colorbar_3d",    value ="Density")
+        updateTextInput(session     = session,inputId = "title_3d",       value ="")
+        } else if (input$display_feature=="Gene Expression/Signature" & input$choose_gene != ""){
+        updateTextInput(session     = session,inputId = "colorbar_3d",    value ="Expression")
+        updateTextInput(session     = session,inputId = "title_3d",       value =input$choose_gene)
+        }
+    vals$trans_3d<-TRUE  
+    }
+  })
+  
+  output$downloadPlot3D <- downloadHandler(
+    filename <- function() { paste('plot.',input$filetype_3d, sep='') },
+    content <- function(file) {
+      b        <- vals$p_3d
+      b$x$layout$width  <- input$width_3d 
+      b$x$layout$height <- input$height_3d
+      b        <- plotly_build(b)$x[c("data", "layout")]
+      json     <- plotly:::to_JSON(b)
+      filename_tmp<-tempfile(fileext = ".json")
+      write(json, file=filename_tmp)
+      OrcaPath<-system('which orca',intern = T)
+      if(input$filetype_3d %in% c("png")){
+        args <- c(
+          "graph", filename_tmp,
+          "-o", filename())
+        invisible(processx::run(OrcaPath, args, echo = TRUE, spinner = TRUE,echo_cmd = T))
+        file.copy(filename(), file)
+      }
+      if(input$filetype_3d %in% c("pdf")){
+        args <- c(
+          "graph", filename_tmp,
+          "-o", filename(),
+          "--format", "pdf")
+        invisible(processx::run(OrcaPath, args, echo = TRUE, spinner = TRUE,echo_cmd = T))
+        file.copy(filename(), file)
+      }
+      if(input$filetype_3d %in% c("svg")){
+        args <- c(
+          "graph", filename_tmp,
+          "-o", filename(),
+          "--format", "svg")
+        invisible(processx::run(OrcaPath, args, echo = TRUE, spinner = TRUE,echo_cmd = T))
+        file.copy(filename(), file)
+      }
+    }
+  )
+  getTerminalOutputCommand<-function(command){
+    output$terminalOutput <- renderText({
+      termOut<<-paste0(termOut,"<font size = '3' face = 'arial' color='white'><b>",":>",command,"</b></font>",sep = '<br/>')
+      # Call custom javascript to scroll window
+      session$sendCustomMessage(type = "scrollCallback", 1)
+      return(termOut)
+    })
+  }
+  getTerminalOutputResult<-function(){
+    output$terminalOutput <- renderText({
+      session$sendCustomMessage(type = "scrollCallback", 1)
+      return(termOut)
+    })
+  }
+ # observeEvent(input$run_docker_command,{
+#    isolate(command<-input$command)
+#    getTerminalOutputCommand(command)
+#  })
+  observeEvent(input$clear_output,{
+    updateTextInput(session = session,inputId = "command",value = "")
+    command<-input$command
+    termOut<<-NULL
+    getTerminalOutputCommand(command)
+  })
+  observeEvent(input$gce_list_disks,{
+    out<-gce_list_disks()$items[,1:6]
+    tmp<-capture.output(out)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","List Disks:","</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  })
+  observeEvent(input$gce_list_instances,{
+    out<-gce_list_instances()
+    tmp<-capture.output(out)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","List Instances:","</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  })
+  observeEvent(input$gce_list_machinetypes,{
+    out<-gce_list_machinetype()
+    tmp<-capture.output(out)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","List Machine Types:","</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    updateSelectizeInput(session = session,inputId = "select_machine",choices = out$items$name)
+  })
+ 
+  observeEvent(input$run_vm,{
+    tag <<- gce_tag_container(input$container_name)
+    vm  <<- gce_vm(template=input$select_template,
+                 name = input$vm_name,
+                 username = "marcin", 
+                 password = "marcin1234",
+                 dynamic_image = tag,
+                 predefined_type = input$select_machine,
+                 disk_size_gb = input$disk_size)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Running VM: ",input$vm_name,"</b></font>",sep = '<br/>')
+    #termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  })
+  
+  observeEvent(input$get_running_vms,{
+    list_all_instances<-gce_list_instances()
+    running_machines<-which(list_all_instances$items$status=="RUNNING")
+    if(length(running_machines)  ==  0) {
+      showNotification("No running instances",type = "warning",duration = 10)
+      updateSelectizeInput(session = session,inputId = "vm_name_sd",choices = NULL,selected = NULL,server = T)
+      return()
+    } else {
+      updateSelectizeInput(session = session,inputId = "vm_name_sd",choices = list_all_instances$items$name[running_machines])
+    }
+  })
+  
+  observeEvent(input$assign_vm,{
+    print(input$vm_name_sd)
+    if(is.null(input$vm_name_sd) | input$vm_name_sd=="") {
+      showNotification("Select VM Name",type = "warning",duration = 10)
+      return()
+    } 
+    vm<<-gce_get_instance(input$vm_name_sd)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Selected VM: ",input$vm_name,"</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",capture.output(vm),"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    output$VM_assigned <- renderText(
+      paste0("<font size = '2'>","Selected VM: ","<font size = '3' color=\"#FD0E35\"><b>", vm$name , "</b></font>")
+      ) 
+    vals$gcp_selected_files==""
+  })
+  
+  observeEvent(input$stop_vm,{
+    if(is.null(input$vm_name_sd ) | input$vm_name_sd=="") {
+      showNotification("Select VM Name",type = "warning",duration = 10)
+      return()
+    }
+    tmp<-capture.output(gce_vm_stop(input$vm_name_sd))
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Stopping VM: ",input$vm_name_sd,"</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    vm<<-NULL
+    updateSelectizeInput(session = session,inputId = "vm_name_sd",choices = NULL,selected = NULL,server = T)
+    output$VM_assigned <- renderText(
+      paste0("<font size = '2'>","Selected VM: ","None", "</b></font>")
+    ) 
+    vals$gcp_selected_files==""
+  })
+  
+  observeEvent(input$delete_vm,{
+    if(is.null(input$vm_name_sd) | input$vm_name_sd=="") {
+      showNotification("Select VM Name",type = "warning",duration = 10)
+      return()
+    }
+    tmp<-capture.output(gce_vm_delete(input$vm_name_sd))
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Deleting VM: ",input$vm_name_sd,"</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    vm<<-NULL
+    updateSelectizeInput(session = session,inputId = "vm_name_sd",choices = NULL,selected = NULL,server = T)
+    output$VM_assigned <- renderText(
+      paste0("<font size = '2'>","Selected VM: ","None", "</b></font>")
+    ) 
+    vals$gcp_selected_files==""
+  })
+   
+  observeEvent(input$open_ssh,{
+    if(is.null(vm)) {
+      showNotification("Select and assign VM",type = "warning",duration = 10)
+      return()
+    }
+    gce_ssh_browser(input$vm_name_sd)
+  })
+  
+  observeEvent(input$show_processes,{
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    tmp<-gce_ssh(vm, "top -n1 -b|head -n 20",capture_text = T)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","List processes: ",input$vm_name_sd,"</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  })
+  observeEvent(input$run_ssh_command,{
+    if(input$command=="" | is.null(vm)) {
+      showNotification("Write a command",type = "warning",duration = 10)
+      return()
+    }
+    isolate(command<-input$command)
+    tmp<-gce_ssh(vm, input$command,capture_text = T)
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>",input$command,"</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    updateTextInput(session = session,inputId = "command",value = "")
+  })
+  output$VM_assigned <- renderText({ 
+    if(is.null(vm)){
+      paste0("<font size = '2'>","Selected VM: ",  "None","</b></font>")  
+    } else {
+      paste0("<font size = '2'>","Selected VM: ", "<font size = '3' color=\"#FD0E35\"><b>",vm$name,"</b></font>") 
+    }
+  })
+
+  
+  output$dirTable <- renderDataTable({
+    vals$gcp_selected_dir<-gce_ssh(vm, paste0("ls -d -1 ",vals$gcp_dir,"*/"),capture_text = T)
+    if(length(grep("cannot access",vals$gcp_selected_dir))!=0) {
+      return(data.frame(".."))
+    } else {
+    return(data.frame(vals$gcp_selected_dir))
+    }
+  }, options  = list(paging   = F,
+                     scrollY  = "200px"),rownames = NULL,colnames=NULL,caption =paste0("Folders: "),selection=list(mode="single"))
+  
+  output$fileTable <- renderDataTable({
+    tmp<-gce_ssh(vm, paste0("ls -d -1 ",vals$gcp_dir,"*.*"),capture_text = T)
+    if(length(grep("cannot access",tmp))!=0) tmp<-".."
+    vals$gcp_files_indir<-tmp
+    return(data.frame(tmp))
+  }, options  = list(paging   = FALSE,
+                     scrollY  = "200px"),rownames = NULL,colnames=NULL,caption =paste0("Files: "),selection=list(mode="multiple"))
+  
+  observeEvent(input$dirRIGHT, {
+    s = input$dirTable_rows_selected
+    if(length(s)>0){
+      vals$gcp_dir<-vals$gcp_selected_dir[s]
+    } else {
+      return()
+    }
+  })
+  
+  observeEvent(input$dirUP, {
+    dirs=unlist(strsplit(vals$gcp_dir,"/"))
+    dirs=dirs[-length(dirs)]
+    vals$gcp_dir<-paste0(paste0(dirs,collapse = "/"),"/")
+  })
+  
+  
+  observeEvent(input$copyToVM, {
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Copying Files to VM:","</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",vals$inputFiles_GCP$FILES,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    dest<-if(input$dest_gcp=="") {"~/"} else {input$dest_gcp} 
+    gce_ssh_upload(vm,gsub(" ","\\ ",vals$inputFiles_GCP$FILES,fixed=T),dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>","Done","</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  }
+  )
+  
+  observeEvent(input$selectFilesFromVM, {
+    s = input$fileTable_rows_selected
+    if(length(s)>0){
+     vals$gcp_selected_files<-vals$gcp_files_indir[s]
+     termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Selectd Files on VM:","</b></font>",sep = '<br/>')
+     termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",vals$gcp_selected_files,"</font>",collapse = '<br/>'),sep = '<br/>')
+     getTerminalOutputResult()
+    output$selectedScript <- renderText({ vals$gcp_selected_files[1] }) 
+    } else {
+      showNotification("Select Files",type = "warning",duration = 10)
+      return()
+    }
+  })
+  observeEvent(input$copyFromVM, {
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Copying Files from VM:","</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",vals$gcp_selected_files,"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    dest<-if(input$dest_local=="") {"~/"} else {input$dest_local} 
+    gce_ssh_download(vm,vals$gcp_selected_files,dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>","Done","</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  }
+  )
+  observe({
+    updateAceEditor(
+      session, "ace", 
+      theme = input$theme, 
+      mode = input$mode,
+      tabSize = input$size, 
+      fontSize = input$FontSizeEditor,
+      showInvisibles = as.logical(input$invisible)
+    )
+  })
+  observeEvent(input$EditSelectedFile, {
+    if(vals$gcp_selected_files=="") {
+      showNotification("Select Files",type = "warning",duration = 10)
+      return()
+    }
+    tmpdir<-tempdir()
+    if(length(vals$gcp_selected_files)>0) vals$gcp_selected_files<-vals$gcp_selected_files[1] 
+    gce_ssh_download(vm,vals$gcp_selected_files,tmpdir,verbose = TRUE,overwrite = T)
+    vals$local_path_edited_file<-paste0(tmpdir,"/",basename(vals$gcp_selected_files))
+    output$EditedFile <- renderText(
+      paste0("<font size = '2' color=\"#FD0E35\"><b>",paste0(vals$gcp_selected_files," (VM: ",vm$name,")"), "</b></font>")
+    ) 
+    #print(vals$local_path_edited_file)
+    updateAceEditor(session, "ace", value = paste0(readLines(vals$local_path_edited_file),collapse = "\r"))
+  })
+  
+  observeEvent(input$CreateNew, {
+    output$EditedFile <- renderText(
+      paste0("")
+    ) 
+    vals$local_path_edited_file<-tempfile()
+    updateAceEditor(session, "ace", value = "")
+  })
+  
+  observeEvent(input$SaveFile, {
+    file_name<-vals$local_path_edited_file
+    writeLines(text = input$ace,file_name)
+    system(paste0("awk -v RS='\r' '{print $0}' ",file_name," > ",file_name,"tmp ; mv ",file_name,"tmp ",file_name))
+    gce_ssh_upload(vm,file_name,dirname(vals$gcp_selected_files),verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>","File Saved:","</font>",collapse = '<br/>'),sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",paste0(vals$gcp_selected_files," (VM: ",vm$name,")"),"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  })
+  
+  observeEvent(input$SaveAs, {
+    if(vals$local_path_edited_file==""){
+    file_name<-paste0(tempdir(),"/",basename(input$SaveAsFile))
+    } else {
+    file_name<-paste0(dirname(vals$local_path_edited_file),"/",basename(input$SaveAsFile))
+    }
+    writeLines(text = input$ace,file_name)
+    system(paste0("awk -v RS='\r' '{print $0}' ",file_name," > ",file_name,"tmp ; mv ",file_name,"tmp ",file_name))
+    dest<-dirname(input$SaveAsFile)
+    gce_ssh_upload(vm,file_name,dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>","File Saved:","</font>",collapse = '<br/>'),sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",paste0(input$SaveAsFile," (VM: ",vm$name,")"),"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+  })
+
+  observeEvent(input$runScriptOnVM, {
+    script<-basename(vals$gcp_selected_files[1])
+    dir<-dirname(vals$gcp_selected_files[1])
+    cmd=paste0("run -v ",dir,":/home --rm ",tag," R -e 'source(\"/home/",script,"\")' &>logs.txt &")
+    print(cmd)
+    docker_cmd(vm,cmd = cmd, capture_text = TRUE)
+  })
+  
+  observeEvent(input$gce_initialize, {
+    Sys.setenv("GCE_AUTH_FILE" = input$GCE_AUTH_FILE,
+               "GCE_DEFAULT_PROJECT_ID" = input$GCE_DEFAULT_PROJECT_ID,
+               "GCE_DEFAULT_ZONE" = input$GCE_DEFAULT_ZONE)
+    print(input$GCE_AUTH_FILE)
+    print(input$GCE_DEFAULT_PROJECT_ID)
+    print(input$GCE_DEFAULT_ZONE)
+    require(googleComputeEngineR)
+  })
+  output$plot3dto2d <- renderPlot({
+    tmp<-scatter3D( vals$data_3d$h, 
+                     vals$data_3d$i, 
+                     vals$data_3d$j,
+                     phi = input$phi,
+                     theta = input$theta)
+    tmp<-tmp %*% rbind(vals$data_3d$h,
+                       vals$data_3d$i,
+                       vals$data_3d$j,
+                      rep(1,length(vals$data_3d$h)))
+    tmp<-t(tmp)
+    colnames(tmp)<-c("x","y","z","w")
+    ggplot(as.data.frame(tmp), aes(x=x, y=y, colour=if(input$scale_colorbar_3d){log10(vals$data_3d$x)} else {vals$data_3d$x})) +
+      geom_point(size=0.1) +
+      theme(plot.background    =  element_rect(fill  =  input$plot_background),
+            legend.background  =  element_rect(fill  =  input$plot_background),
+            panel.background   =  element_rect(fill  =  input$panel_background, colour = "black"),
+            panel.grid.major   =  if(input$showgrid) {element_line(colour = "grey")} else {element_blank()},
+            panel.grid.minor   =   element_blank(),
+            legend.position    =  "none",
+            axis.line          =  element_line(colour = "black",size = 0.5),
+            text               =  element_text(family = input$fonts, face = "bold",size = input$fs),
+            axis.ticks         =  element_line(size   = 0.5,colour = 'black'),
+            axis.text          =  element_text(size   = input$fs,colour = 'black'))+
+      scale_colour_gradientn(colours  =  get_colors(input$pal_3d,
+                                                    input$dichromat  !=  "No",
+                                                    input$dichromat,
+                                                    vals$n.cols))
+    
+  })
+  
+  observeEvent(input$DMap_run, {
+    Parameters.DMap<<-data.frame( path=input$DMap_Path,
+                                  nNN=input$DMap_nNN,
+                                  k=input$DMap_k,
+                                  EigDecompMethod=input$DMap_EigDecompMethod,
+                                  nLocalsigma=input$DMap_ls,
+                                  nThreads=input$DMap_nThreads,
+                                  AnnMethod=input$DMap_NNMethod,
+                                  nTrees=input$DMap_Annoy_nTrees,
+                                  M=input$DMap_Nmslib_M,
+                                  efC=input$DMap_Nmslib_efC,
+                                  efS =input$DMap_Nmslib_efS
+                                  )
+    DMap_filename=paste0(tempdir(),"/DiffusionMap_InputParameters.json")
+    jsonlite::write_json(Parameters.DMap,DMap_filename,pretty=T)
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    termOut<<-paste0(termOut,
+                     "<font size = '2' face = 'arial' color='white'><b>",":>",
+                     "Copying Files to VM:",
+                     "</b></font>",
+                     sep = '<br/>')
+    termOut<<-paste0(termOut,
+                     paste0("<font size = '2' face = 'arial' color='white'>",
+                            "DiffusionMap_InputParameters.json",
+                            "</font>",
+                            collapse = '<br/>'),
+                     sep = '<br/>')
+    getTerminalOutputResult()
+    dest="~/"
+    gce_ssh_upload(vm,DMap_filename,dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",
+                                    "Done",
+                                    "</font>",
+                                    collapse = '<br/>'),
+                     sep = '<br/>')
+    getTerminalOutputResult()
+    cmd=paste0("run -v ~/:/home --rm ",tag," R -e 'source(\"/scsvatools/DMap.R\")' &>DMap.logs &")
+    print(cmd)
+    docker_cmd(vm,cmd = cmd, capture_text = TRUE)
+    
+  })
+  
+  observeEvent(input$NNG_run, {
+    Parameters.NNG<<-data.frame( path= input$NNG_Path,
+                                 nNN=input$NNG_nNN,
+                                 nThreads=input$NNG_nThreads,
+                                 AnnMethod=input$NNG_NNMethod,
+                                 nTrees=input$NNG_Annoy_nTrees,
+                                 M=input$NNG_Nmslib_M,
+                                 efC=input$NNG_Nmslib_efC,
+                                 efS =input$NNG_Nmslib_efS 
+    )
+    NNG_filename=paste0(tempdir(),"/NNG_InputParameters.json")
+    jsonlite::write_json(Parameters.NNG,NNG_filename,pretty=T)
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    termOut<<-paste0(termOut,
+                     "<font size = '2' face = 'arial' color='white'><b>",":>",
+                     "Copying Files to VM:",
+                     "</b></font>",
+                     sep = '<br/>')
+    termOut<<-paste0(termOut,
+                     paste0("<font size = '2' face = 'arial' color='white'>",
+                            "DiffusionMap_InputParameters.json",
+                            "</font>",
+                            collapse = '<br/>'),
+                     sep = '<br/>')
+    getTerminalOutputResult()
+    dest="~/"
+    gce_ssh_upload(vm,NNG_filename,dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",
+                                    "Done",
+                                    "</font>",
+                                    collapse = '<br/>'),
+                     sep = '<br/>')
+    getTerminalOutputResult()
+    cmd=paste0("run -v ~/:/home --rm ",tag," R -e 'source(\"/scsvatools/NNG.R\")' &>NNG.logs &")
+    print(cmd)
+    docker_cmd(vm,cmd = cmd, capture_text = TRUE)
+    
+  })
+  
+  observeEvent(input$FLE_run, {
+  Parameters.FA_3D<<-data.frame( path= input$FLE_Path,
+                                 memmory = paste0(input$FLE_memmory,"g"),
+                                 layout=input$FLE_type,
+                                 nsteps=input$FLE_nsteps,
+                                 nThreads=input$FLE_nthreads,
+                                 scalingRatio=input$FLE_scalingRatio,
+                                 seed=1,
+                                 barnesHutTheta=input$FLE_barnesHutTheta,
+                                 barnesHutUpdateIter=input$FLE_barnesHutUpdateIter,
+                                 updateCenter=input$FLE_updateCenter,
+                                 barnesHutSplits=input$FLE_barnesHutSplits,
+                                 restart=input$FLE_restart)
+    FLE_filename=paste0(tempdir(),"/ForceDirectedLayout_InputParameters.json")
+    jsonlite::write_json(Parameters.FA_3D,FLE_filename,pretty=T)
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    termOut<<-paste0(termOut,
+                     "<font size = '2' face = 'arial' color='white'><b>",":>",
+                     "Copying Files to VM:",
+                     "</b></font>",
+                     sep = '<br/>')
+    termOut<<-paste0(termOut,
+                     paste0("<font size = '2' face = 'arial' color='white'>",
+                            "ForceDirectedLayout_InputParameters.json",
+                            "</font>",
+                            collapse = '<br/>'),
+                     sep = '<br/>')
+    getTerminalOutputResult()
+    dest="~/"
+    gce_ssh_upload(vm,FLE_filename,dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",
+                                    "Done",
+                                    "</font>",
+                                    collapse = '<br/>'),
+                     sep = '<br/>')
+    getTerminalOutputResult()
+    cmd=paste0("run -v ~/:/home --rm ",tag," R -e 'source(\"/scsvatools/FLE.R\")' &> FLE.logs &")
+    print(cmd)
+    docker_cmd(vm,cmd = cmd, capture_text = TRUE)
+    
+  })
+  
+  observeEvent(input$FLE_getDistances, {
+    if(is.null(vm)) {
+      showNotification("Select and Assign VM",type = "warning",duration = 10)
+      return()
+    }
+    vals$FLE_dist<-FALSE
+    termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Copying Files from VM:","</b></font>",sep = '<br/>')
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'> FLE_InputData_FLE.distances.txt</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    dest=tempdir()
+    gce_ssh_download(vm,"~/NNG_output_FLE.distances.txt",dest,verbose = TRUE)
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>","Done","</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
+    FLE_dist<<-as.data.frame(fread(paste0(dest,"/NNG_output_FLE.distances.txt")))
+    vals$FLE_dist<-TRUE
+  })
+  
+  output$plot_FLE_dist = renderPlotly({
+    if(vals$FLE_dist){
+    p  =  plot_ly()
+    p  =  plot_ly(FLE_dist,
+                   x      =  ~step,
+                   y      =  ~log10(distance),
+                   type = 'scatter', 
+                   mode = 'lines',
+                   line = list(color = '#004C71', width = 0.5)) %>% 
+      add_lines(y = ~fitted(loess(log10(distance) ~ step, data = FLE_dist, span=0.2)),
+                line = list(color = 'black',width=1.5)) %>%
+      layout(title = "",
+             yaxis = list(title = "Total distance, log10"),
+             xaxis = list (title = "Iteration"),
+             showlegend = FALSE)
+    p
+    }
+    else {
+      plotly_empty()
+    }
+  })
+ 
+observeEvent(input$FLE_checkProgress, {
+    
+    val= as.integer(gce_ssh(vm, "cat ~/FLE.logs |grep -A4 -B3 'Edges loaded' |fgrep -o '*'  | wc -l",capture_text = T))
+    output$plot_FLE_checkProgress<- renderPlotly({
+      plot_ly(x = val, type = 'bar', orientation = 'h',marker=list(color='#004C71')) %>% 
+        layout(xaxis = list(range = c(0, 100),showline = TRUE,mirror = "ticks",
+                            ticksuffix = "%"),
+               yaxis=list(
+                 title = "",
+                 zeroline = FALSE,
+                 showline = TRUE,
+                 mirror = "ticks",
+                 showticklabels = FALSE,
+                 showgrid = FALSE
+               ),
+               margin = list(r = 50)) %>% config(displayModeBar = F)
+    })
+  })
+
+observeEvent(input$FLE_loadCoordinates, {
+  termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Copying Files from VM:","</b></font>",sep = '<br/>')
+  termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'> NNG_output_FLE.txt</font>",collapse = '<br/>'),sep = '<br/>')
+  getTerminalOutputResult()
+  gce_ssh_download(vm,"~/NNG_output_FLE.txt","~/",verbose = TRUE)
+  file_name="~/NNG_output_FLE.txt"
+  tmp=fread(file_name)
+  if(ds$length()!=nrow(tmp)){
+          if(input$show_clusters | input$plot_clusters | input$plot_expression) {
+            updateCheckboxInput(session = session,inputId = "show_clusters",value = FALSE)
+            updateCheckboxInput(session = session,inputId = "plot_clusters",value = FALSE)
+            updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
+          }
+          ds <<- vaex$from_arrays(x=numpy$array(tmp$x))
+          ds$add_virtual_column("x3d", "x")
+        } else {
+          ds$add_column('x3d',data = numpy$array(tmp$x)) 
+        }
+  ds$add_column('y',data = numpy$array(fread(file_name)$y))
+  ds$add_virtual_column("y3d", "y")
+  ds$add_column('z3d',data = numpy$array(fread(file_name)$z))
+  gc()
+  gc_python$collect()
+  vals$X_3d    <- c(py_to_r(ds$min('x3d')),py_to_r(ds$max('x3d')))
+  vals$Y_3d    <- c(py_to_r(ds$min('y3d')),py_to_r(ds$max('y3d')))
+  vals$Z_3d    <- c(py_to_r(ds$min('z3d')),py_to_r(ds$max('z3d')))
+  
+  vals$load_3d        =  TRUE
+  vals$trans_3d       =  TRUE
+  vals$plot.ID        =  1
+  vals$trans           <- TRUE
+  vals$initialize      <- TRUE
+  vals$X               <- c(py_to_r(ds$min('x')),py_to_r(ds$max('x')))
+  vals$Y               <- c(py_to_r(ds$min('y')),py_to_r(ds$max('y')))
+  vals$group_Adist     =  NULL
+  vals$group_Bdist     =  NULL
+  vals$Ncells_Group_A  =  0
+  vals$Ncells_Group_B  =  0
+  vals$gAa             =  FALSE
+  vals$gBa             =  FALSE
+  vals$polygon         <- NULL
+  Summary_Stat         =  data.frame(Mean = 0.0, Median = 0.0,SD = 0.0,stringsAsFactors = F)
+    
+})
+
+
+observeEvent(input$FS_ls_1, {
+  if(input$FS_type_1=="local"){
+    vals$path_FS_1<-"/"
+    all.files=list.files(vals$path_FS_1,rec=F,full.names = T)
+    vals$FS_ls_1<-data.frame(Content=substring(c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),2),stringsAsFactors = F)
+  } else if(input$FS_type_1=="gs"){
+    vals$path_FS_1<-"gs://"
+    vals$FS_ls_1<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_1),intern = T),stringsAsFactors = F)
+  }
+})
+
+output$FS_1 <- renderDataTable({
+      DT::datatable(vals$FS_ls_1,
+                    options  = list(paging   = FALSE,
+                                    scrollY  = "400px"),rownames = NULL,colnames=NULL,caption =vals$path_FS_1,selection=list(mode="multiple"))
+    })
+
+
+
+observeEvent(input$FS_1_dirRIGHT, {
+  s = input$FS_1_rows_selected
+  if(length(s)>0){
+    if(input$FS_type_1=="local"){
+    print(vals$FS_ls_1$Content[s[1]])  
+    vals$path_FS_1<-vals$FS_ls_1$Content[s[1]]
+    all.files=list.files(vals$path_FS_1,rec=F,full.names = T)
+    vals$FS_ls_1<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+    } else if(input$FS_type_1=="gs"){
+      vals$path_FS_1<-vals$FS_ls_1$Content[s[1]]
+      vals$FS_ls_1<-data.frame(Content=setdiff(system(paste0(GCU,' ls ',vals$path_FS_1),intern = T),vals$path_FS_1),stringsAsFactors = F)
+    }
+  } else {
+    return()
+  }
+})
+
+observeEvent(input$FS_1_dirUP, {
+  if(input$FS_type_1=="local"){
+  vals$path_FS_1<-dirname(vals$path_FS_1)
+  all.files=list.files(vals$path_FS_1,rec=F,full.names = T)
+  if(vals$path_FS_1=="/"){
+    vals$FS_ls_1<-data.frame(Content=substring(c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),2),stringsAsFactors = F)
+  } else {
+  vals$FS_ls_1<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)}
+  }
+  else if(input$FS_type_1=="gs"){
+    vals$path_FS_1<-dirname(vals$path_FS_1)
+    print(vals$path_FS_1)
+    vals$FS_ls_1<-data.frame(Content=setdiff(system(paste0(GCU,' ls ',if(vals$path_FS_1=="gs:"){"gs://"}else{vals$path_FS_1}),intern = T),vals$path_FS_1),stringsAsFactors = F)
+  }
+  
+})
+
+observeEvent(input$FS_mkdir_1, {
+  dir.create(path = paste0(vals$path_FS_1,"/",input$FS_mkdir_dirname_1),showWarnings = T)
+  all.files=list.files(vals$path_FS_1,rec=F,full.names = T)
+  vals$FS_ls_1<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+}
+)
+
+observeEvent(input$FS_ls_2, {
+  if(input$FS_type_2=="local"){
+    vals$path_FS_2<-"/"
+    all.files=list.files(vals$path_FS_2,rec=F,full.names = T)
+    vals$FS_ls_2<-data.frame(Content=substring(c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),2),stringsAsFactors = F)
+  } else if(input$FS_type_2=="gs"){
+    vals$path_FS_2<-"gs://"
+    vals$FS_ls_2<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_2),intern = T),stringsAsFactors = F)
+  }
+})
+
+output$FS_2 <- renderDataTable({
+  DT::datatable(vals$FS_ls_2,
+                options  = list(paging   = FALSE,
+                                scrollY  = "400px"),
+                rownames = NULL,
+                colnames=NULL,
+                caption =vals$path_FS_2,
+                selection=list(mode="multiple"))
+})
+#Copy
+observeEvent(input$FS_Right, {
+  s = input$FS_1_rows_selected
+  if(length(s)>0){
+   if(input$FS_type_1=="local" & input$FS_type_2=="local"){
+    for(i in 1:length(s)){
+        file.copy(from = as.character(vals$FS_ls_1$Content[s[i]]),
+                to = vals$path_FS_2,
+                recursive = T,
+                overwrite = T
+                 )
+    }
+     all.files=list.files(vals$path_FS_2,rec=F,full.names = T)
+     vals$FS_ls_2<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+   } else {
+    system(paste0(GCU,' -m cp -r ',paste(vals$FS_ls_1$Content[s],collapse = " "),' ',vals$path_FS_2),intern = T) 
+    vals$FS_ls_2<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_2),intern = T),stringsAsFactors = F) 
+   }
+  } else {
+    return()
+  }
+})
+#Copy
+observeEvent(input$FS_Left, {
+  s = input$FS_2_rows_selected
+  if(length(s)>0){
+    if(input$FS_type_1=="local" & input$FS_type_2=="local"){
+      for(i in 1:length(s)){
+        file.copy(from = as.character(vals$FS_ls_2$Content[s[i]]),
+                  to = vals$path_FS_1,
+                  recursive = T,
+                  overwrite = T
+        )
+      }
+      all.files=list.files(vals$path_FS_1,rec=F,full.names = T)
+      vals$FS_ls_1<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+    } else {
+      system(paste0(GCU,' -m cp -r ',paste(vals$FS_ls_2$Content[s],collapse = " "),' ',vals$path_FS_1),intern = T) 
+      vals$FS_ls_1<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_1),intern = T),stringsAsFactors = F)
+    }
+  } else {
+    return()
+  }
+})
+
+observeEvent(input$FS_2_dirRIGHT, {
+  s = input$FS_2_rows_selected
+  if(length(s)>0){
+    if(input$FS_type_2=="local"){
+      print(vals$FS_ls_2$Content[s[1]])  
+      vals$path_FS_2<-vals$FS_ls_2$Content[s[1]]
+      all.files=list.files(vals$path_FS_2,rec=F,full.names = T)
+      vals$FS_ls_2<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+    } else if(input$FS_type_2=="gs"){
+      vals$path_FS_2<-vals$FS_ls_2$Content[s[1]]
+      vals$FS_ls_2<-data.frame(Content=setdiff(system(paste0(GCU,' ls ',vals$path_FS_2),intern = T),vals$path_FS_2),stringsAsFactors = F)
+    }
+  } else {
+    return()
+  }
+})
+
+observeEvent(input$FS_2_dirUP, {
+  if(input$FS_type_2=="local"){
+    vals$path_FS_2<-dirname(vals$path_FS_2)
+    all.files=list.files(vals$path_FS_2,rec=F,full.names = T)
+    if(vals$path_FS_2=="/"){
+      vals$FS_ls_2<-data.frame(Content=substring(c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),2),stringsAsFactors = F)
+    } else {
+      vals$FS_ls_2<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)}
+  }
+  else if(input$FS_type_2=="gs"){
+    vals$path_FS_2<-dirname(vals$path_FS_2)
+    vals$FS_ls_2<-data.frame(Content=setdiff(system(paste0(GCU,' ls ',if(vals$path_FS_2=="gs:"){"gs://"}else{vals$path_FS_2}),intern = T),vals$path_FS_1),stringsAsFactors = F)
+  }
+})
+
+observeEvent(input$FS_mkdir_2, {
+  dir.create(path = paste0(vals$path_FS_2,"/",input$FS_mkdir_dirname_2),showWarnings = T)
+  all.files=list.files(vals$path_FS_2,rec=F,full.names = T)
+  vals$FS_ls_2<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+}
+)
+
+observeEvent(input$FS_mkdir_bucket_1, {
+  system(paste0(GCU,' mb ',input$FS_mkdir_bucket_name_1),intern = T)
+  vals$path_FS_1<-"gs://"
+  vals$FS_ls_1<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_1),intern = T),stringsAsFactors = F)
+  }
+)
+
+observeEvent(input$FS_mkdir_bucket_2, {
+  system(paste0(GCU,' mb ',input$FS_mkdir_bucket_name_2),intern = T)
+  vals$path_FS_2<-"gs://"
+  vals$FS_ls_2<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_2),intern = T),stringsAsFactors = F)
+}
+)
+
+observeEvent(input$FS_remove_local_1, {
+    s = input$FS_1_rows_selected
+    if(length(s)>0){
+        for(i in 1:length(s)){
+          unlink(vals$FS_ls_1$Content[s[i]],recursive = T)
+        }
+        all.files=list.files(vals$path_FS_1,rec=F,full.names = T)
+        vals$FS_ls_1<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+    } else {
+      return()
+    }
+  })
+
+observeEvent(input$FS_remove_local_2, {
+  s = input$FS_2_rows_selected
+  if(length(s)>0){
+    for(i in 1:length(s)){
+      unlink(vals$FS_ls_2$Content[s[i]],recursive = T)
+    }
+    all.files=list.files(vals$path_FS_2,rec=F,full.names = T)
+    vals$FS_ls_2<-data.frame(Content=c(all.files[file.info(all.files)$isdir],all.files[!file.info(all.files)$isdir]),stringsAsFactors = F)
+  } else {
+    return()
+  }
+})
+
+observeEvent(input$FS_remove_object_1, {
+  s = input$FS_1_rows_selected
+  if(length(s)>0){
+    system(paste0(GCU,' -m rm -r ',paste(vals$FS_ls_1$Content[s],collapse = " ")),intern = T) 
+    vals$FS_ls_1<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_1),intern = T),stringsAsFactors = F)
+  } else {
+    return()
+  }
+})
+
+observeEvent(input$FS_remove_object_2, {
+  s = input$FS_2_rows_selected
+  if(length(s)>0){
+    system(paste0(GCU,' -m rm -r ',paste(vals$FS_ls_2$Content[s],collapse = " ")),intern = T) 
+    vals$FS_ls_2<-data.frame(Content=system(paste0(GCU,' ls ',vals$path_FS_2),intern = T),stringsAsFactors = F)
+  } else {
+    return()
+  }
+})
+
+observeEvent(input$show_multiplot,{
+  if(length(vals$list_plots)==0 & input$show_multiplot==TRUE){ 
+    updateCheckboxInput(session = session,inputId = "show_multiplot",value = FALSE)
+    isolate(showNotification("Nothing to plot",type = "warning",duration = 10))
+  }
+})
+
+observeEvent(input$collect_plots,{
+  file=paste0(tempfile(tmpdir = tmpdir),".png")
+  ggsave(file,
+         plotInput(),
+         type    = "cairo",
+         width   = input$width,
+         height  = input$height,
+         units   = input$un,
+         dpi     = input$res)
+  vals$list_plots[[length(vals$list_plots)+1]]<<-file
+})
+
+
+output$multiplot <- renderImage({
+  input$collect_plots
+  ImageVec<-magick::image_read(vals$list_plots[[1]])
+  if(length(vals$list_plots)>1){
+    for(i in 2:length(vals$list_plots)){
+      ImageVec<-c(ImageVec,magick::image_read(vals$list_plots[[i]]))
+    }
+  }
+
+  d=1:length(ImageVec);n=input$multiplot_ncols;chunks<-split(d, ceiling(seq_along(d)/n))
+  images_byRow<-magick::image_append(ImageVec[chunks[[1]]],stack = F)
+  if(length(chunks)>1){
+    for(i in 2:length(chunks)){
+      images_byRow<-c(images_byRow,magick::image_append(ImageVec[chunks[[i]]],stack = F))
+    }
+  }
+  images<-magick::image_append(images_byRow,stack = T)
+  tmpfile <- images  %>% 
+    magick::image_write(tempfile(fileext='png'), format = 'png')
+  tmp=magick::image_info(images)
+  list(src = tmpfile,
+       contentType = 'image/png',
+       width = tmp$width*input$multiplot_scale,
+       height = tmp$height*input$multiplot_scale)
+}, deleteFile = F)
+
+observeEvent(input$remove_image,{
+  vals$list_plots[[input$multiplot_image_to_modify]]<-NULL
+  if(length(vals$list_plots)==0) {updateCheckboxInput(session,inputId = "show_multiplot",value = FALSE)}
+  })
+
+observeEvent(input$remove_all_images,{
+  vals$list_plots<-list()
+  updateCheckboxInput(session,inputId = "show_multiplot",value = FALSE)
+})
+
+}
 

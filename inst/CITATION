@@ -3,6 +3,7 @@ citHeader("To cite scSVA in publications use:")
 citEntry(entry = "Article",
   title        = "scSVA",
   author       = personList(as.person("Marcin Tabaka"),
+                   as.person("Joshua Gould"),
                    as.person("Aviv Regev")),
   journal      = "XX",
   year         = "2018",
@@ -12,7 +13,7 @@ citEntry(entry = "Article",
   url          = "http://",
 
   textVersion  =
-  paste("Marcin Tabaka, Aviv Regev (2018).",
+  paste("Marcin Tabaka, Joshua Gould, Aviv Regev (2018).",
         "scSVA:",
         "Journal,1(1), 1-21.",
         "URL http://")
