@@ -1,4 +1,4 @@
-FROM rocker/shiny
+FROM rocker/rstudio
 
 ENV CRAN_MIRROR http://cran.rstudio.com
 
@@ -26,6 +26,10 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
     && rm -rf /tmp/miniconda.sh \
     && conda install -y python=3 \
     && conda update conda \
+#    && apt-get -qq -y remove curl bzip2 \
+#    && apt-get -qq -y autoremove \
+#    && apt-get autoclean \
+#    && rm -rf /var/lib/apt/lists/* /var/log/dpkg.log \
     && conda clean --all --yes
 
 ENV PATH /opt/conda/bin:$PATH
@@ -34,10 +38,6 @@ RUN conda install -v -c anaconda pyopengl
 RUN conda install -c anaconda numpy 
 RUN conda install -c conda-forge vaex
 RUN conda install -c plotly plotly-orca
-
-RUN apt-get update --fix-missing \
-           && apt-get install -y \
-           git
 
 #Install zindex
 RUN git clone https://github.com/mattgodbolt/zindex.git \
@@ -105,7 +105,7 @@ RUN apt-get update --fix-missing \
 #Install R dependencies
 RUN install2.r --repos ${CRAN_MIRROR}\
                 ggplot2 \
-		dplyr \
+		            dplyr \
                 Matrix \
                 colorRamps\
                 RColorBrewer\
@@ -125,6 +125,7 @@ RUN install2.r --repos ${CRAN_MIRROR}\
                 plyr\
                 ggrepel\
                 googleComputeEngineR\
+                gridExtra\
                 magick
 
 
@@ -143,7 +144,7 @@ RUN install2.r --repos ${CRAN_MIRROR}\
   
 #Install scsva
 COPY scSVA_0.2.0.tar.gz /home/
-RUN  Rscript -e "install.packages('/home/scSVA_0.2.0.tar.gz', repos = NULL, type='source')" \
+RUN Rscript -e "install.packages('/home/scSVA_0.2.0.tar.gz', repos = NULL, type='source')" \
                && rm -rf /home/scSVA_0.2.0.tar.gz
                
 RUN apt-get install -y libxext-dev \
@@ -167,5 +168,7 @@ RUN echo '#!/bin/bash\nxvfb-run --auto-servernum --server-args "-screen 0 1024x1
     chmod +x /usr/local/bin/orca
 
 # Run rocker/rstudio init
-COPY ./inst/scSVA /srv/shiny-server/myapp/
+CMD ["/init"]
 
+#EXPOSE 3838
+#CMD ["R", "-e", "shiny::runApp('/usr/local/lib/R/site-library/scSVA/scSVA/',launch.browser =FALSE)"]

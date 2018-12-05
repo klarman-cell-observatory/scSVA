@@ -48,6 +48,7 @@ Imports:
     shinyBS,
     shinyjqui,
     shinyAce,
+    gridExtra,
     magick,
     googleComputeEngineR,
 Remotes: thomasp85/shinyFiles,
