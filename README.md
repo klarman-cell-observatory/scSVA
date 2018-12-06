@@ -99,7 +99,13 @@ Then, pull the docker image using the
 following command in the terminal:
 
 ```
-docker pull ...
+docker pull mtabaka/scsva
+```
+
+To pull [scSVAtools](https://github.com/broadinstitute/scSVAtools) use
+
+```
+docker pull mtabaka/scsvatools
 ```
 
 Verify the docker image is available:
@@ -111,7 +117,7 @@ docker images
 To run the **scSVA** docker container use the command:
 
 ```
-docker run -d -p 8787:8787 --rm -m 8g --cpus 4 -v PATH:/home/  -e USER=user_login -e PASSWORD=user_password scsva
+docker run -d -p 8787:8787 --rm -m 8g --cpus 4 -v PATH:/home/  -e USER=user_login -e PASSWORD=user_password mtabaka/scsva
 ```
 The --cpus and -m flags specify the number of cores and memory available in the container, respectively.
 PATH is a path to the directory with an expression matrix and metadata. 
