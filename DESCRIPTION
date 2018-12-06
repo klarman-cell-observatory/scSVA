@@ -17,13 +17,14 @@ SystemRequirements:
     numpy  (>= 1.13.3),
     vaex   (>= 1.0.0-beta.6)
 Depends: 
-    R (>= 3.4.0), 
+    R (>= 3.4.3), 
     Matrix, 
     ggplot2
 Imports: 
     reticulate,
     rhdf5,
     Cairo,
+    MASS,
     RColorBrewer,
     colorRamps,
     dichromat,
@@ -51,5 +52,5 @@ Imports:
     gridExtra,
     magick,
     googleComputeEngineR,
-Remotes: thomasp85/shinyFiles,
+    shinyFiles,
 RoxygenNote: 6.0.1

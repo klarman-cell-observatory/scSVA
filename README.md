@@ -2,7 +2,7 @@
 
 ---
 
-The **scSVA** (single-cell Scalable Visualization and Analytics) ia an R package for 
+The **scSVA** (single-cell Scalable Visualization and Analytics) is an R package for 
 interactive visualization and exploratory analysis of massive 
 single-cell omics datasets. The **scSVA** is built with [Shiny](https://shiny.rstudio.com) and is optimized for efficient 
 visualization of cells on 2D/3D embedding and extracting cell features to visualize them 
@@ -13,16 +13,16 @@ or a billion cells on a moderate desktop computer.
 As a back-end it uses [VaeX](https://github.com/maartenbreddels/vaex), 
 a fast python library for vector data processing on a grid. 
 
-**scSVA** simplifies a production of high-quality figures for scientific publications using [ggplot2](https://ggplot2.tidyverse.org) package 
-and provides a comprehensive set of interactive tools for 2D/3D figure customization and annotation.
-The **scSVA** allows for basic statistical analysis like computing a distribution of gene expression 
+The **scSVA** simplifies a production of high-quality figures for scientific publications using [ggplot2](https://ggplot2.tidyverse.org) package and provides a comprehensive set of interactive tools for 2D/3D figure customization and annotation.
+The **scSVA** allows for basic statistical analysis like computing cell counts and distributions of gene expression 
 values across selected or provided groups of cells. 
 In addition, users can run fast methods for diffusion maps and 3D force-directed layout embedding (FLE) interactively using 
 [scSVAtools](https://github.com/broadinstitute/scSVAtools).
 The full documentation is provided with the **scSVA** package in the "Help" tab.
 
-Visualization of 100 Million cells on MacBook Pro (3.1 GHz i7, 16 GB)
-[![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE)
+A visualization of 100 Million cells (upsampled FLE created from 
+the Human Bone Marrow single-cell [dataset](https://preview.data.humancellatlas.org)) 
+on MacBook Pro (3.1 GHz i7, 16 GB) [![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE):
 
 ---
 
@@ -32,7 +32,7 @@ The **scSVA** package can be installed from GitHub as follows:
 
 ```
 install.packages(devtools)
-devtools::install_github(\"mtabaka/scSVA\", dependencies=TRUE, repos=BiocInstaller::biocinstallRepos())
+devtools::install_github("broadinstitute/scSVA",dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())
 ```
 You need R>=3.4.0 and Rstudio to be installed on your system to install and run **scSVA** package. 
 
@@ -67,33 +67,39 @@ and  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/index
 
 **scSVA** uses [reticulate](https://github.com/rstudio/reticulate) to run Python packages in R.
 The first step is to configure the path to Python 3 installation with **numpy** and **vaex** libraries.
-To get the default python version used by reticulate use the following command
+To get the default python version used by reticulate, use the following command
 ```
 Sys.which("python")
 ```
-To explore which Python versions are installed use:
+To explore which Python versions are installed, use:
 ```
 reticulate::py_discover_config()
 ```
-To modify the default path e.g. if Python executable file is in `/opt/anaconda3/bin/python` use
+To modify the default path e.g. if a Python executable file is in `/opt/anaconda3/bin/python`, use
 ```
 Sys.setenv(PATH = paste("/opt/anaconda3/bin/", Sys.getenv("PATH"),sep=":"))
 ```
-To run **scSVA** use the following command in R console
+or 
+```
+reticulate::use_python("/opt/anaconda3/bin/")
+```
+To run **scSVA**, use the following command in R console
 ```
 scSVA::scSVA()
 ```
 This opens a **scSVA** Shiny app in a default browser. 
+If the popup blocker is active in your browser click on "Try Again" 
+to open **scSVA** Shiny App in a new tab.
 The full documentation on how to use **scSVA** is provided with the package in the "Help" 
 tab. 
 
 ### Install scSVA as a docker container
 
-It has full installation of Rstudio server with R version 3.5.1 with openblass libraries 
+scSVA docker image has full installation of Rstudio server with R version 3.5.1 with openblass libraries 
 and R dependencies preinstalled for **scSVA**.  
-Python version 3.6.4 is preinstalled with Anaconda with **numpy** (version 1.14.0) and **vaex**
-(version 1.0.0b8). It contains also **zindex** for creating an index on compressed files and 
-gsutil tools to allow working on [Google Cloud](https://cloud.google.com).  
+Python version 3.6.7 is preinstalled with Anaconda with **numpy** (version 1.15.4) and **vaex**
+(version 1.0.0b7). It contains also **zindex** for creating an index on compressed files and 
+gsutil tools for working with [Google Cloud](https://cloud.google.com).  
 
 The first step is to download and install **docker** from https://docs.docker.com/install/ .
 Then, pull the docker image using the 
@@ -115,7 +121,7 @@ Verify the docker image is available:
 docker images
 ```
 
-To run the **scSVA** docker container use the command:
+To run the **scSVA** docker container, use the command:
 
 ```
 docker run -d -p 8787:8787 --rm -m 8g --cpus 4 -v PATH:/home/  -e USER=user_login -e PASSWORD=user_password mtabaka/scsva
@@ -123,12 +129,12 @@ docker run -d -p 8787:8787 --rm -m 8g --cpus 4 -v PATH:/home/  -e USER=user_logi
 The --cpus and -m flags specify the number of cores and memory available in the container, respectively.
 PATH is a path to the directory with an expression matrix and metadata. 
 The files will be available in the /home/ directory in the container.
-To run R server open web browser and visit http://localhost:8787 .
-To run **scSVA** use the command in R console
+To run R server, open web browser and visit http://localhost:8787 .
+To run **scSVA**, use the command in R console
 ```
 scSVA::scSVA()
 ```
-If the popup blocker is active in your browser click on "Try Again" to open **scSVA** Shiny App in a new tab.
+If the popup blocker is active in your browser, click on "Try Again" to open **scSVA** Shiny App in a new tab.
 
 Alternatively, scsva docker image can be installed using a Dockerfile provided with the **scSVA** package:
 ```
@@ -192,7 +198,7 @@ We focus here on running scSVA using the Google Cloud Compute Engine (GCE):
     Alternatively, run `gce_get_external_ip("scsva")`.
 12. Wait a few minutes for the `scsva-image-name` docker container to download and launch.
 13. Open web browser and visit `http://localhost:externalIP`. 
-    Provide `user_login` and `user_password` from step 10. This will open Rstudio server.
+    Provide `user_login` and `user_password` from the step 10. This will open Rstudio server.
 14. To copy expression matrix with metadata from a bucket to your vm instance, go to Rstudio terminal and execute the command
     ```
     gsutil cp gs://bucket-name/* ./  
