@@ -13,9 +13,11 @@ Encoding: UTF-8
 LazyData: true  
 BugReports: mtabaka@broadinstitute.org
 SystemRequirements: 
-    Python (>= 3.6.3),
-    numpy  (>= 1.13.3),
-    vaex   (>= 1.0.0-beta.6)
+    Python      (>= 3.6.3),
+    numpy       (>= 1.13.3),
+    vaex        (>= 1.0.0-beta.7)
+    pyopengl    (>=3.1.1a1)
+    plotly-orca (>=1.1.0)
 Depends: 
     R (>= 3.4.3), 
     Matrix, 
