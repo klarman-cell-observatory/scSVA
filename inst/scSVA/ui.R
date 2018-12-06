@@ -1025,7 +1025,7 @@ navbarMenu("Cloud",
                          HTML("<br><br>"),
                          conditionalPanel("input.plot_clusters == true",
                          wellPanel(
-                         h5("Load Cluster Labels"),
+                         h5("Load Group Labels"),
                          selectInput(
                            inputId  =  "inputFileType_ClusterNames",
                            label    =  "Input File Format",
@@ -1362,7 +1362,7 @@ tags$ul(
           "Make sure that ",a("Zindex", href="https://github.com/mattgodbolt/zindex", target="_blank")," is properly installed on your computer and
           is visible as an executable file by your operating system.
           Indexing allows for very efficient retrieval of the rows from compressed files without need for loading of the entire matrix into the memory.
-          Thus the memory usage is reduced by a factor of 10,000-40,000 for a typical expression matrix which makes possible a fast visualization
+          Thus, the memory usage is reduced by a factor of 10,000-40,000 for a typical expression matrix which makes possible a fast visualization
           of gene expression values on a 2D embedding or computing and plotting scores of a custom defined gene signature (set of genes)."
           )
 
@@ -1405,8 +1405,8 @@ h5(tags$b("Plot Navigation")),
 
 h4(tags$b("3D")),
 
-"To initialize 3D plot select X, Y, and Z coordinates and load datasets (see File section). 
-Functions for 3D plot customization are similar to those present in 2D plots except the Camera Viepoint 
+"To initialize 3D plot, select X, Y, and Z coordinates and load datasets (see File section). 
+Functions for 3D plot customization are similar to those present in 2D plots except the Camera Viewpoint 
 which determines the camera view point about origin (", a("see manual", href="https://plot.ly/python/3d-camera-controls/", target="_blank"),
 "). A panel \"Display Feature\" changes the feature to be plotted. Users can visualize a density of cells or gene/signature expression values.  
 2D projection button opens a new window with 3D data projection onto 2D. 
@@ -1440,12 +1440,12 @@ For a chosen gene, users can select two groups of cells as described above and c
 
 h4(tags$b("Gene Expression by Group")),
 
-"Checking box \"Compute Gene Expression by Group\" starts computation of statistics in clusters like number of cells, gene expression mean, median and standard deviation.
+"Checking box \"Compute Gene Expression by Group\" starts computation of statistics in groups like number of cells, gene expression mean, median and standard deviation.
 Once completed, the statistics are listed in the table. The table is fully interactive: 1) groups can be sorted by a mean or number of cells for example,
-2) searched by statistic values or cluster IDs, 3) filtered by statistic values by clicking on boxes below the table.
+2) searched by statistic values or group IDs, 3) filtered by statistic values by clicking on boxes below the table.
 Single-click on a row of the table (group) will show a gene expression distribution for the selected group.
 Users can mark many groups to compare the expression distributions among them. Each selection opens a new distribution plot on right-hand side.
-The plots are interactive and colored by the same colors as clusters on the embedding. The scroll bar, on the bottom of the plots, changes the y-axis range for all plots.
+The plots are interactive and colored by the same colors as groups on the embedding. The scroll bar, on the bottom of the plots, changes the y-axis range for all plots.
 Moving a cursor to the plot bar will show fraction of cells falling in a given expression range.
 To compare all the distributions on one plot go to \"ECDF\" tab to open a plot with empirical cumulative distribution function (users can easily read dropout levels from the ecdf plot or
 check for bi- or multimodalities that may suggest underclustering) or \"Violin\" to visualize 
@@ -1455,7 +1455,7 @@ h4(tags$b("Gene Signatures")),
 
 "In order to compute gene signature scores (e.g. from Molecular Signature Database",a("MSigDB", href="http://software.broadinstitute.org/gsea/msigdb", target="_blank"),
 ") for all cells and visualize them on 2D or 3D embedding, users need to provide a set of gene names to \"Enter Gene List\" field and
-specify \"Gene Signature Name\". The gene names in the list must be in the some format as in gene expression matrix (e.g. gene symbols).
+specify \"Gene Signature Name\". The gene names in the list must be in the same format as in gene expression matrix (e.g. gene symbols).
 The gene expression values across all cells can be retrieved in parallel from an expression matrix by specifying the number of threads on local machine.
 Click on \"Compute Gene Signature Score\" box to start retrieving and computing the scores. scSVA computes gene expression z-score across all cells and average over
 the z-scores across the entire gene set.",
@@ -1463,7 +1463,7 @@ the z-scores across the entire gene set.",
 h3(tags$b("Cloud")),
 
 "scSVA supports interactive analytics and data storage mamagement on the cloud (Google Cloud Platform). 
-Google Cloud Platform  charges you for storage and running VMs, ", a("see pricing", href="https://cloud.google.com/pricing/", target="_blank"),".",
+Google Cloud Platform charges you for storage and running VMs, ", a("see pricing", href="https://cloud.google.com/pricing/", target="_blank"),".",
 "Stop or delete any GCP services once you are done with your analysis. Good practice is to often check the billing of your project.
 scSVA is an R package distributed as-is, without warranties of any kind. Make sure that you use the GCP services reasonably and follow best practices.",
 "To get started make sure that your system configuration is ready to use GCP and in particular to launch virtual machine instances in Google Cloud Compute Engine (GCE).
@@ -1479,12 +1479,12 @@ Follow the instructions below to install and configure all required tools:",tags
 
 h4(tags$b("Storage")),
 
-"To list all google buckets from the default poject, choose \"gs\" and click \"Explore FS\". Select a bucket from the list and click right arrow 
+"To list google buckets from the default project, choose \"gs\" and click \"Explore FS\". Select a bucket from the list and click right arrow 
 below the list to show its content. 
 The upper arrow below the list navigates up one directory. To remove the object from the bucket, select it and click \"Remove Selected Object\". 
-Users can also create new buckets by  specyfing the name of the bucket and clicking \"Create New Bucket\" button. 
+Users can also create new buckets by specyfying the name of the bucket and clicking \"Create New Bucket\" button. 
 Selection of \"local\" filesystem will list directories and files on your local computer. Users can easily copy objects 
-between the local computer and the bucket by clicking left/right arrow betweel filesystem panels.",
+between the local computer and the bucket by clicking left/right arrow between filesystem panels.",
 
 h4(tags$b("Compute Engine")),
 "scSVA uses ", a("googleComputeEngineR", href="https://cloudyr.github.io/googleComputeEngineR/", target="_blank"), 
@@ -1494,18 +1494,18 @@ Clicking it opens the Console in new browser tab. Users can monitor there all se
 To get started, go to \"GCE Setup\" and provide the path to GCE private key in JSON format (see step (ii)), 
 your project name (see step (i)), and the zone you want to launch VM (see ",
 a("instructions", href="https://cloud.google.com/compute/docs/regions-zones/", target="_blank"),")",
-", After successfull configuration, \"GCE List Disks\" in \"GCE Info\" allows to display 
+", After successful configuration, \"GCE List Disks\" in \"GCE Info\" allows to display 
 all disks in the project, and \"GCE List Instances\" list all VMs (stopped and running) 
 in the project. Right console displays all the information from GCE",
 
 "To launch a new VM, or restart a stopped VM, go to \"RUN VM\" window, and click
-\"GCE List Machine Types\". This will list all availble Machines in your selected zone.
+\"GCE List Machine Types\". This will list all available Machines in your selected zone.
 Select container with computational tools you want to run on VM, and provide name for your virtual machine.
 To build a new image on Google Cloud, go to terminal, then to directory with a Dockerfile and run the following command:", tags$br(),
 tags$code("gcloud container builds submit --timeout=2h --tag gcr.io/Project_Name/ContainerName"),tags$br(),
 "For further information, see instructions to ",a("googleComputeEngineR", href="https://cloudyr.github.io/googleComputeEngineR/", target="_blank"), "package.",
-"Usally it takes less than one minute to lunch VM. You can check the progress in Rstudio console. 
-If the VM instance is successfully lanched you should see its name in the list of VM instances with status 
+"Usually it takes less than one minute to lunch VM. You can check the progress in Rstudio console. 
+If the VM instance is successfully launched you should see its name in the list of VM instances with status 
 \"RUNNING\" after clicking the \"GCE List Instances\" button.",
 
 "\"Get Running VMs\" button displays all VM instances with status \"RUNNING\". 
@@ -1519,12 +1519,12 @@ In order to list running processes on the VM instance click \"Run Top\".
 Users can easily transfer files from/to the VM instance using the panel below.
 Selected files from the list can be modified after clicking \"Edit\" button. 
 Users can also create new files on the VM instances. 
-If your container have tools installed that can run scripts (eg. bash, R, or python) 
+If your container has tools installed that can run scripts (eg. bash, R, or python) 
 selecting a script on VM and clicking \"Run Script\" will start running the script on the VM instances.
 If you have many running VM instances you can switch between them by selecting a running instance and assigning it.
 We added also the option of running commands on the VM instance. Write the command in the test field below the console
 (as you would do it in the bash terminal) and click \"Run SSH Command\".
-The output of the command appears in the console. To remove all text from the console click \"Clear\" button.
+The output of the command appears in the console. To remove all text from the console, click \"Clear\" button.
 ",
 
 #h4(tags$b("Compute 3D FLE")),
@@ -1544,10 +1544,11 @@ h3(tags$b("Metadata")),
 
 h4(tags$b("Groups")),
 
-"Here, users can visualize and annotate cell groups on 2D embedding by selecting color palettes, modify colors of individual clusters, show and modify cluster labels.",tags$br(),
+"Here, users can visualize and annotate cell groups on 2D embedding by selecting color palettes, 
+modify colors of individual groups, show and modify cluster labels.",tags$br(),
 
-"The middle panel contains a table with coordinates of cluster labels and right-hand panel customizes the plot.
-First check \"Show Groups\". This will compute group positions (cell clusters for example) on a grid.
+"The middle panel contains a table with coordinates of group labels and right-hand panel customizes the plot.
+First check \"Show Groups\". This will compute group positions (cell groups for example) on a grid.
 \"Get Labels\" check box, when selected, computes the position of labels by taking average x- and y-coordinates for each group.
 The table in the middle panel lists all groups (group IDs, x-, and y-coordinates, and group labels). 
 Users can modify the coordinates of labels plotted on 2D and group names by double-click
@@ -1563,10 +1564,10 @@ and displayed point size in the panel that opens after checking the box \"Show L
 
 "Colors of cell groups on 2D embedding can be modified in \"Color Palette\" panel. We included support for most of ",
 a("Crayola crayon colors", href="https://en.wikipedia.org/wiki/List_of_Crayola_crayon_colors", target="_blank")," 
-which generate distinctive and aesthetically-pleasing color sets to mark clusters.
+which generate distinctive and aesthetically-pleasing color sets to mark groups of cells.
 Clicking on Shuffle Colors will permute colors from a given set. Make sure that none of the groups has a color which is close to the background color.
-\"Shuffle Cells\" will permute the cells on the grid (important if some clusters overlap for example). The individual cluster colors can be changed in two ways:
-(i) checking \"Show color List\" will open a table with group colors. Double-click on the column element will allow for color modification for the selected cluster.
+\"Shuffle Cells\" will permute the cells on the grid (important if some groups overlap for example). The individual group colors can be changed in two ways:
+(i) checking \"Show color List\" will open a table with group colors. Double-click on the column element will allow for color modification for the selected group.
 Users can provide a color in hex format or by giving a color name e.g. \"navyblue\"; (ii) Specify the \"Group ID\" whose color you wish to modify
 (the group can be highlighted by checking the \"Highlight Group\" box). Clicking \"Change Group Color\" field will open a color picker.
 Click on a color and the color of the cell group will change immediately.",
@@ -1575,7 +1576,7 @@ h4(tags$b("Multiplots")),
 
 "Here, users can arrange multiple graphs on a grid. To start click on \"Add Plot\" button. This will add the main plot to a list of plots.
 Check the box \"Show Multiplots\" to make it visible. To add more graphs just click \"Add Plot\". To change the size of added plot or its resolution 
-go to \"Visulaize\", \"2D\" tab and modify the plot properties in the right side bar. scSVA uses ", 
+go to \"Visualaize\", \"2D\" tab and modify the plot properties on the right sidebar. scSVA uses ", 
 a("R bindings", href="https://cran.r-project.org/web/packages/magick/index.html", target="_blank")," to",
 a("ImageMagick", href="https://www.imagemagick.org/script/index.php", target="_blank"), "to arrange graphs on a grid.
 Multiplots can be zoomed in/out by changing the \"Scale\" scroll bar, \"Number of Columns\" specify number of graphs per row.
@@ -1585,8 +1586,8 @@ h3(tags$b("Annotation")),
 
 "To start annotating the main plot check the \"Annotate\" box. From now, any single mouse left-click on the main plot will create a new label.
 The coordinates and text labels appear in the table in the middle panel. The table is interactive and double click on its element allow
-for modification of this element. To remove an annotation label specify the \"Annotation ID\" you wish to remove and click on \"Remove Label\".
-The labels can be further customized by specyfying the background color of the label, its transparency, size, and font type of the text.
+for modification of this element. To remove an annotation label, specify the \"Annotation ID\" you wish to remove and click on \"Remove Label\".
+The labels can be further customized by specifying the background color of the label, its transparency, size, and font type of the text.
 The bounding box can be modified by changing the line width of its border or the radius of corners.",
 
 h3(tags$b("Extensions")),
@@ -1595,7 +1596,7 @@ h4(tags$b("Color Palette")),
 
 "Users can customize their plots by creating their own color palettes. Click on \"Select Colors For a New Palette\".
 This will open a color picker widget that can be used to select colors for a custom palette (the colors can be added to a palette also by specifying the hex color code).
-Specifying the name of the color palette and clicking on \"Add New Palette\" will make it available in both \"Color Palette\" selection fields in \"Visualize\" and \"Metadata\" -> \"Clusters\" tabs.
+Specifying the name of the color palette and clicking on \"Add New Palette\" will make it available in both \"Color Palette\" selection fields in \"Visualize\" and \"Metadata\" -> \"Groups\" tabs.
 The new custom color palette will appear at the end of the list of color palettes.",
 
 h4(tags$b("Fonts")),
@@ -1612,7 +1613,7 @@ We encourage users to import new fonts at the first step and restart R session b
 br(),
 
 h4("Guided Video Tutorials:"),
-"Created by Marcin Tabaka" ,
+"Created by Marcin Tabaka",
 br(),
 "Contact me at",
 a("mtabaka@broadinstitute.org", href="mailto:mtabaka@broadinstitute.org"),
@@ -1663,7 +1664,7 @@ tags$li("scSVA is optimized for efficient extracting of cell features
 br(),
 tags$li("scSVA include fast algorithms for diffusion maps and 3D force-directed layout embedding (FLE)"),
 br(),
-tags$li("scSVA simplifies managment of buckets and running scripts on the Google Cloud Platform"),
+tags$li("scSVA simplifies management of buckets and running scripts on the Google Cloud Platform"),
 br(),
 tags$li("scSVA package can be installed from source or as a cloud-compatible image/container."),
 br(),

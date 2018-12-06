@@ -19,7 +19,7 @@ The **scSVA** allows for basic statistical analysis like computing a distributio
 values across selected or provided groups of cells. 
 In addition, users can run fast methods for diffusion maps and 3D force-directed layout embedding (FLE) interactively using 
 [scSVAtools](https://github.com/broadinstitute/scSVAtools).
-The full documentation is provided with the **scSVA** package in the "Help" tab .
+The full documentation is provided with the **scSVA** package in the "Help" tab.
 
 Visualization of 100 Million cells on MacBook Pro (3.1 GHz i7, 16 GB)
 [![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE)

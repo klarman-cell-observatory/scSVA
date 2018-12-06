@@ -5,18 +5,18 @@ ENV CRAN_MIRROR http://cran.rstudio.com
 RUN apt-get update --fix-missing \
 	 && apt-get install -y \
 	    ca-certificates \
-    	libglib2.0-0 \
+    	    libglib2.0-0 \
 	    libxext6 \
 	    libsm6  \
 	    libxrender1 \
 	    libxml2-dev \
-      unzip \
-      cmake \
-      zlib1g-dev \
-      htop \
-      libglu1-mesa-dev \
-      freeglut3-dev \
-      mesa-common-dev 
+            libglu1-mesa-dev \
+            freeglut3-dev \
+            mesa-common-dev \ 
+            unzip \
+            cmake \
+            zlib1g-dev \
+            htop 
       
             
 # Install Python
@@ -26,10 +26,6 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
     && rm -rf /tmp/miniconda.sh \
     && conda install -y python=3 \
     && conda update conda \
-#    && apt-get -qq -y remove curl bzip2 \
-#    && apt-get -qq -y autoremove \
-#    && apt-get autoclean \
-#    && rm -rf /var/lib/apt/lists/* /var/log/dpkg.log \
     && conda clean --all --yes
 
 ENV PATH /opt/conda/bin:$PATH
@@ -50,7 +46,7 @@ RUN git clone https://github.com/mattgodbolt/zindex.git \
 RUN apt-get install -y apt-transport-https \
                        curl \
                        gnupg
-ENV CLOUD_SDK_VERSION 193.0.0
+ENV CLOUD_SDK_VERSION=226.0.0
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
@@ -81,6 +77,10 @@ RUN wget https://github.com/google/fonts/archive/master.zip -O /usr/share/fonts/
 RUN cd /usr/share/fonts; unzip google_fonts.zip
 RUN fc-cache -f -v /usr/share/fonts/
 
+#Remove local/openblas* 
+#https://github.com/JuliaLang/julia/issues/11913
+RUN rm /usr/local/lib/libopenblas*
+
 #Install R and dependencies
 RUN install2.r --repos ${CRAN_MIRROR}\
 		Rcpp \
@@ -105,15 +105,13 @@ RUN apt-get update --fix-missing \
 #Install R dependencies
 RUN install2.r --repos ${CRAN_MIRROR}\
                 ggplot2 \
-		            dplyr \
+                dplyr \
                 Matrix \
                 colorRamps\
                 RColorBrewer\
                 dichromat\
                 viridis\
-                colourpicker
-
-RUN install2.r --repos ${CRAN_MIRROR}\
+                colourpicker\
                 shiny\
                 shinydashboard\
                 shinythemes\
@@ -126,10 +124,7 @@ RUN install2.r --repos ${CRAN_MIRROR}\
                 ggrepel\
                 googleComputeEngineR\
                 gridExtra\
-                magick
-
-
-RUN install2.r --repos ${CRAN_MIRROR}\
+                magick\
                 plotly\
                 DT\
                 data.table\
@@ -141,13 +136,10 @@ RUN install2.r --repos ${CRAN_MIRROR}\
                 && Rscript -e "source('https://bioconductor.org/biocLite.R'); biocLite('rhdf5')" \
                 && Rscript -e "devtools::install_github(c('thomasp85/shinyFiles'))" \
                 && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
-  
-#Install scsva
-COPY scSVA_0.2.0.tar.gz /home/
-RUN Rscript -e "install.packages('/home/scSVA_0.2.0.tar.gz', repos = NULL, type='source')" \
-               && rm -rf /home/scSVA_0.2.0.tar.gz
-               
-RUN apt-get install -y libxext-dev \
+                
+RUN apt-get update --fix-missing \
+                       && apt-get install -y \
+                       libxext-dev \
                        libxrender-dev \
                        libxtst-dev \
                        libxss1 \
@@ -156,19 +148,17 @@ RUN apt-get install -y libxext-dev \
                        libasound2 \
                        x11vnc \
                        xvfb \
-                       desktop-file-utils
-
-#RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-#     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-#     apt-get update -y && \
-#     apt-get install -y google-chrome-stable
-
+                       desktop-file-utils 
+                       
 RUN cp /usr/local/bin/orca /usr/bin/orca
 RUN echo '#!/bin/bash\nxvfb-run --auto-servernum --server-args "-screen 0 1024x1024x24" /usr/bin/orca "$@" --enable-webgl ' > /usr/local/bin/orca && \
     chmod +x /usr/local/bin/orca
 
+#Install scsva
+COPY scSVA_0.2.0.tar.gz /home/
+RUN Rscript -e "install.packages('/home/scSVA_0.2.0.tar.gz', repos = NULL, type='source')" \
+               && rm -rf /home/scSVA_0.2.0.tar.gz
+ 
 # Run rocker/rstudio init
 CMD ["/init"]
 
-#EXPOSE 3838
-#CMD ["R", "-e", "shiny::runApp('/usr/local/lib/R/site-library/scSVA/scSVA/',launch.browser =FALSE)"]

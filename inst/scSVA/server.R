@@ -416,7 +416,7 @@ observeEvent(input$load_dataset_ClusterNames, {
 
 
    observeEvent(input$load_datasets_3d, {
-#XY coordinates
+#XYZ coordinates
     if(input$inputFileType_XYZ  ==  "HDF5"){
       tmp=h5read(vals$inputFiles$XYZ, input$X_coord_3d)
       if(ds$length()!=length(tmp)){
@@ -689,7 +689,7 @@ observeEvent(input$load_dataset_ClusterNames, {
           vals$setup_colors    <-  FALSE
         }
         vals$cluster_df  <-  data.frame(i = 0.0, j = 0.0,x = 0, Cluster_ID = 0 )
-        withProgress(message = 'Getting clusters', value = 0, {
+        withProgress(message = 'Getting groups', value = 0, {
         for(l in 1:vals$N.clusters){
           ds$select(paste0("clusters==",l,""))
           cluster_grids<-py_to_r(ds$count('clusters',
@@ -1270,7 +1270,7 @@ observeEvent(input$load_dataset_ClusterNames, {
   observeEvent(input$plot_clusters, {
     if(input$plot_clusters){
       vals$N.clusters  =  py_to_r(ds$max('clusters'))
-      withProgress(message = 'Getting cluster label positions', value = 0, {
+      withProgress(message = 'Getting group label positions', value = 0, {
       for(l in 1:vals$N.clusters){
         ds$select(paste0("clusters==",l,""))
         vals$cluster_labels <- rbind(vals$cluster_labels,
@@ -1294,7 +1294,7 @@ observeEvent(input$load_dataset_ClusterNames, {
   observeEvent(input$show_clusters, {
     if(input$show_clusters){
       if(!vals$load_clust & vals$load_xy){
-        showNotification("Load Cluster Data",type = "warning",duration = 10)
+        showNotification("Load Group Data",type = "warning",duration = 10)
         updateCheckboxInput(session,inputId = "show_clusters",value = FALSE) 
         return()
         }
@@ -1372,7 +1372,7 @@ observeEvent(input$load_dataset_ClusterNames, {
 
   observeEvent(input$get_exp_clusters, {
     if(input$get_exp_clusters  & !input$plot_clusters) {
-      showNotification("Load cluster labels:  Metadata -> Clusters -> Get Cluster Label Positions",type = "warning",duration = 10)
+      showNotification("Load group labels:  Metadata -> Groups -> Get Group Labels",type = "warning",duration = 10)
       updateCheckboxInput(session, "get_exp_clusters", value = FALSE)
       return()
     }
@@ -1382,7 +1382,7 @@ observeEvent(input$load_dataset_ClusterNames, {
       return()
     }
     if(input$get_exp_clusters){
-    withProgress(message = 'Getting Gene Expression by Cluster', value = 0, {
+    withProgress(message = 'Getting Gene Expression by Group', value = 0, {
       for(l in 1:vals$N.clusters){
         ds$select(paste0("clusters==",l,""))
         vals$cluster_stat  <-  rbind(vals$cluster_stat,
@@ -1469,7 +1469,7 @@ observeEvent(input$load_dataset_ClusterNames, {
                 marker = list(colors = vals$cluster_colors,
                               line = list(color = '#FFFFFF', width = 1)),
                 type = 'pie') %>%
-          layout(title = 'Population by Cluster',
+          layout(title = 'Population by Group',
                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
       } else {
@@ -1498,7 +1498,7 @@ observeEvent(input$load_dataset_ClusterNames, {
                                      x      = ~Expression,
                                      y      = ~Cell_Number,
                                      type   = "bar",
-                                     name   = paste0("Cluster: ",vals$cluster_labels$ID[s[i]]),
+                                     name   = paste0("Group: ",vals$cluster_labels$ID[s[i]]),
                                      marker = list(color = vals$cluster_colors[s[i]])) %>%
               layout(xaxis   = list(title = input$clegend),
                      yaxis   = list(title = "Fraction of Cells",
@@ -1538,7 +1538,7 @@ observeEvent(input$load_dataset_ClusterNames, {
             p  <-  add_lines(p,
                              x      =  seq(vals$rangeE[1],vals$rangeE[2],length.out=40),
                              y      =  cumsum(distCl[[i]])/sum(distCl[[i]]),
-                             name   =  paste0("Cluster: ",vals$cluster_labels$ID[s[i]]),
+                             name   =  paste0("Group: ",vals$cluster_labels$ID[s[i]]),
                              marker =  list(color = vals$cluster_colors[s[i]]),
                              line   =  list(color = vals$cluster_colors[s[i]]),
                              mode   = 'lines')
