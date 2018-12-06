@@ -42,9 +42,10 @@ The **scSVA** requires Python 3.6 to be installed on your machine.
 The most convenient way is to install Python through **Miniconda3** or **Anaconda3**.
 Follow the instructions on https://conda.io/docs/user-guide/install/index.html. 
 
-Then, install **numpy**, **vaex**, and **orca** packages:
+Then, install **numpy**, **pyopengl**, **vaex**, and **orca** packages:
 ```
-conda install numpy
+conda install -c anaconda numpy
+conda install -c anaconda pyopengl
 conda install -c conda-forge vaex
 conda install -c plotly plotly-orca
 ```
