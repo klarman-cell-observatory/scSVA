@@ -135,7 +135,7 @@ scSVA::scSVA()
 If the popup blocker is active in your browser, click on "Try Again" to open **scSVA** Shiny App in a new tab. If you run Docker on your laptop, for big datasets, you might consider increasing memory of the virtual machine for running Docker. Before running the command "docker run ...", 
 click on the "whale icon" in the task bar, go to Preferences, then to Advanced and increase the resources available to Docker.   
 
-Alternatively, scsva docker image can be installed using a Dockerfile provided with the **scSVA** package:
+The scsva docker image can be also installed using a Dockerfile provided with the **scSVA** package:
 ```
 docker build -t scsva path_to_directory_with_Dockerfile
 ```
