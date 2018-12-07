@@ -22,7 +22,7 @@ The full documentation is provided with the **scSVA** package in the "Help" tab.
 
 A visualization of 100 Million cells (upsampled FLE created from 
 the Human Bone Marrow single-cell [dataset](https://preview.data.humancellatlas.org)) 
-on MacBook Pro (3.1 GHz i7, 16 GB) [![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE):
+on MacBook Pro (3.1 GHz i7, 16 GB): [![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE)
 
 ---
 
@@ -34,7 +34,7 @@ The **scSVA** package can be installed from GitHub as follows:
 install.packages(devtools)
 devtools::install_github("broadinstitute/scSVA",dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())
 ```
-You need R>=3.4.0 and Rstudio to be installed on your system to install and run **scSVA** package. 
+You need R>=3.4.3 and Rstudio to be installed on your system to install and run **scSVA** package. 
 
 ### Prerequisites
 
@@ -95,15 +95,13 @@ tab.
 
 ### Install scSVA as a docker container
 
-scSVA docker image has full installation of Rstudio server with R version 3.5.1 with openblass libraries 
-and R dependencies preinstalled for **scSVA**.  
-Python version 3.6.7 is preinstalled with Anaconda with **numpy** (version 1.15.4) and **vaex**
+scSVA docker image has full installation of Rstudio server with R version 3.5.1 with openblass libraries and R dependencies preinstalled for **scSVA**.  
+Python version 3.6.7 is preinstalled with Anaconda, **numpy** (version 1.15.4) and **vaex**
 (version 1.0.0b7). It contains also **zindex** for creating an index on compressed files and 
 gsutil tools for working with [Google Cloud](https://cloud.google.com).  
 
 The first step is to download and install **docker** from https://docs.docker.com/install/ .
-Then, pull the docker image using the 
-following command in the terminal:
+Then, pull the scsva docker image using the following command in the terminal:
 
 ```
 docker pull mtabaka/scsva
@@ -124,9 +122,9 @@ docker images
 To run the **scSVA** docker container, use the command:
 
 ```
-docker run -d -p 8787:8787 --rm -m 8g --cpus 4 -v PATH:/home/  -e USER=user_login -e PASSWORD=user_password mtabaka/scsva
+docker run -d -p 8787:8787 --rm -v PATH:/home/  -e USER=user_login -e PASSWORD=user_password mtabaka/scsva
 ```
-The --cpus and -m flags specify the number of cores and memory available in the container, respectively.
+
 PATH is a path to the directory with an expression matrix and metadata. 
 The files will be available in the /home/ directory in the container.
 To run R server, open web browser and visit http://localhost:8787 .
@@ -134,7 +132,8 @@ To run **scSVA**, use the command in R console
 ```
 scSVA::scSVA()
 ```
-If the popup blocker is active in your browser, click on "Try Again" to open **scSVA** Shiny App in a new tab.
+If the popup blocker is active in your browser, click on "Try Again" to open **scSVA** Shiny App in a new tab. If you run Docker on your laptop, for big datasets, you might consider increasing memory of the virtual machine for running Docker. Before running the command "docker run ...", 
+click on the "whale icon" in the task bar, go to Preferences, then to Advanced and increase the resources available to Docker.   
 
 Alternatively, scsva docker image can be installed using a Dockerfile provided with the **scSVA** package:
 ```
