@@ -3,12 +3,11 @@ Type: Package
 Title: Single Cell Scalable Visualization and Analytics
 Version: 0.2.0
 Author@R: c(person("Marcin","Tabaka",email="mtabaka@broadinstitute.org",role=c("aut","cre")),
-                   person("Joshua","Gould", role = "com"),
                    person("Aviv","Regev", role = "aut"),
                    person("Broad Institute", role = "cph"))
 Maintainer: Marcin Tabaka <mtabaka@broadinstitute.org>
 Description: A tool for visualization and exploratory analysis of singl-cell omics datasets.
-License: MIT
+License: BSD 3-clause
 Encoding: UTF-8
 LazyData: true  
 BugReports: mtabaka@broadinstitute.org
