@@ -110,7 +110,7 @@ navbarMenu("Visualize",
                          height   = 700,
                          click    = "plot1_click",
                          dblclick = "plot1_dblclick",
-                         brush    = brushOpts(id = "plot1_brush")
+                         brush    = brushOpts(id = "plot1_brush",resetOnNew = TRUE)
                        ),
                        HTML("<br>"),
                        splitLayout(
@@ -447,7 +447,7 @@ navbarMenu("Visualize",
                            height   = 700,
                            click    = "plot1_click",
                            dblclick = "plot1_dblclick",
-                           brush    = brushOpts(id = "plot1_brush")
+                           brush    = brushOpts(id = "plot1_brush",resetOnNew = TRUE)
                          ),
                          checkboxInput("select_polygon",
                            "Polygonal Selection",
@@ -1022,7 +1022,7 @@ navbarMenu("Cloud",
                            height   = 700,
                            click    = "plot1_click",
                            dblclick = "plot1_dblclick",
-                           brush    = brushOpts(id = "plot1_brush")
+                           brush    = brushOpts(id = "plot1_brush",resetOnNew = TRUE)
                          ),
                          actionButton("reset_view3", "Reset View")
                        ),
@@ -1187,7 +1187,7 @@ navbarMenu("Cloud",
                          height   = 700,
                          click    = "plot1_click",
                          dblclick = "plot1_dblclick",
-                         brush    = brushOpts(id = "plot1_brush")
+                         brush    = brushOpts(id = "plot1_brush",resetOnNew = TRUE)
                        )
                      ),
                      column(width = 3,
