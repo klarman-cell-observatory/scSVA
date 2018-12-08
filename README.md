@@ -142,7 +142,8 @@ docker build -t scsva path_to_directory_with_Dockerfile
 
 ### Run scSVA on a cloud
 
-We focus here on running scSVA using the Google Cloud Compute Engine (GCE):
+We focus here on running scSVA in the Google Cloud Compute Engine (GCE) 
+using  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/index.html).
 
 1. Create and configure a Google Cloud Project, see [instructions](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
 2. Download GCE private key in JSON format, see [instructions](https://cloud.google.com/storage/docs/authentication#service_accounts})
