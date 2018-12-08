@@ -2095,14 +2095,16 @@ observeEvent(input$load_dataset_ClusterNames, {
   })
  
   observeEvent(input$run_vm,{
-    tag <<- gce_tag_container(input$container_name)
-    vm  <<- gce_vm(template=input$select_template,
-                 name = input$vm_name,
-                 username = "marcin", 
-                 password = "marcin1234",
-                 dynamic_image = tag,
-                 predefined_type = input$select_machine,
-                 disk_size_gb = input$disk_size)
+    vm  <<- gce_vm(template        = input$select_template,
+                   name            = input$vm_name,
+                   username        = input$GCE_username, 
+                   password        = input$GCE_password,
+                   dynamic_image   = input$container_name,
+                   predefined_type = input$select_machine,
+                   disk_size_gb    = input$disk_size)
+    updateTextInput(session  = session,
+                    inputId  = "ContainerToRun",
+                    value    = input$container_name)
     termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Running VM: ",input$vm_name,"</b></font>",sep = '<br/>')
     #termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",tmp,"</font>",collapse = '<br/>'),sep = '<br/>')
     getTerminalOutputResult()
@@ -2119,22 +2121,32 @@ observeEvent(input$load_dataset_ClusterNames, {
       updateSelectizeInput(session = session,inputId = "vm_name_sd",choices = list_all_instances$items$name[running_machines])
     }
   })
-  
+  observeEvent(input$ContainerToRun,{
+    tag<<-input$ContainerToRun 
+  })
   observeEvent(input$assign_vm,{
-    print(input$vm_name_sd)
     if(is.null(input$vm_name_sd) | input$vm_name_sd=="") {
       showNotification("Select VM Name",type = "warning",duration = 10)
       return()
     } 
-    vm  <<- gce_get_instance(input$vm_name_sd)
-    if(input$container_name == ""){tag <<- gce_ssh(vm, "docker images | awk '{if(NR==2) print $1}'",capture_text = T)} 
+    vm   <<- gce_get_instance(input$vm_name_sd)
+    list_containers <- gce_ssh(vm, "docker images|cut -f1 -d' '",capture_text = T)[-1] 
+    updateSelectizeInput(session = session,
+                         inputId = "ContainerToRun",
+                         choices = list_containers,
+                         selected = list_containers[1])
+    tag <<- list_containers[1]
+      
     termOut<<-paste0(termOut,"<font size = '2' face = 'arial' color='white'><b>",":>","Selected VM: ",input$vm_name,"</b></font>",sep = '<br/>')
     termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>",capture.output(vm),"</font>",collapse = '<br/>'),sep = '<br/>')
-    getTerminalOutputResult()
+    
     output$VM_assigned <- renderText(
       paste0("<font size = '2'>","Selected VM: ","<font size = '3' color=\"#FD0E35\"><b>", vm$name , "</b></font>")
       ) 
     vals$gcp_selected_files==""
+    suppressWarnings(file.remove(paste0(tempdir(),"/hosts")));
+    termOut<<-paste0(termOut,paste0("<font size = '2' face = 'arial' color='white'>", gce_ssh(vm, "uname -a",capture_text = T),"</font>",collapse = '<br/>'),sep = '<br/>')
+    getTerminalOutputResult()
   })
   
   observeEvent(input$stop_vm,{
@@ -2348,7 +2360,7 @@ observeEvent(input$load_dataset_ClusterNames, {
   observeEvent(input$runScriptOnVM, {
     script<-basename(vals$gcp_selected_files[1])
     dir<-dirname(vals$gcp_selected_files[1])
-    cmd=paste0("run -v ",dir,":/home --rm ",tag," R -e 'source(\"/home/",script,"\")' &>logs.txt &")
+    cmd=paste0("run -v ",dir,":/home --rm ",tag," /bin/bash /home/",script,"  &>logs.txt &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
   })
