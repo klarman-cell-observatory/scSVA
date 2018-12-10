@@ -44,10 +44,14 @@ if(Sys.info()["sysname"]=="Darwin" & file.exists("~/.bash_profile")){
 
 if(file.exists("/.dockerenv")){Sys.setenv(PATH = paste("/opt/conda/bin/", Sys.getenv("PATH"),sep=":"))}
 
+if(Sys.getenv("GOOGLE_CLOUD_SDK") != ""){
 GCU<-if(Sys.info()["sysname"]=="Darwin" & file.exists("~/.bash_profile")){
   system("source ~/.bash_profile; which gsutil",intern = T)
-}else if(Sys.info()["sysname"]=="Linux"){
+} else if(Sys.info()["sysname"]=="Linux"){
     system("which gsutil",intern = T)
+}
+} else {
+  GCU<-file.path(Sys.getenv("GOOGLE_CLOUD_SDK"),"gsutil")
 }
 
 options(future.globals.maxSize=Inf)
