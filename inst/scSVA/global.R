@@ -1,5 +1,3 @@
-#Sys.setenv(PATH = paste("/opt/anaconda3/bin/", Sys.getenv("PATH"),sep=":"))
-#reticulate::use_python("/opt/anaconda3/bin/")
 #shiny::runApp("inst/scSVA",launch.browser =TRUE)
 require(reticulate)
 require(rhdf5)
@@ -35,11 +33,22 @@ require(shinyAce)
 require(gridExtra)
 #require(magick)
 #require(googleComputeEngineR)
+
 suppressMessages(loadfonts())
 
-#Docker
-Sys.setenv(PATH = paste("/opt/conda/bin/", Sys.getenv("PATH"),sep=":"))
-GCU<-if(Sys.info()["sysname"]=="Darwin"){system("source ~/.bash_profile; which gsutil",intern = T)}else if(Sys.info()["sysname"]=="Linux"){system("which gsutil",intern = T)}
+if(Sys.info()["sysname"]=="Darwin" & file.exists("~/.bash_profile")){
+  reticulate::use_python(dirname(system("source ~/.bash_profile; which python3",intern = T)))
+} else if(Sys.info()["sysname"]=="Linux"){
+  reticulate::use_python(dirname(system("which python3",intern = T)))
+}
+
+if(file.exists("/.dockerenv")){Sys.setenv(PATH = paste("/opt/conda/bin/", Sys.getenv("PATH"),sep=":"))}
+
+GCU<-if(Sys.info()["sysname"]=="Darwin" & file.exists("~/.bash_profile")){
+  system("source ~/.bash_profile; which gsutil",intern = T)
+}else if(Sys.info()["sysname"]=="Linux"){
+    system("which gsutil",intern = T)
+}
 
 options(future.globals.maxSize=Inf)
 plan(multiprocess)
