@@ -67,22 +67,16 @@ and  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/index
 
 **scSVA** uses [reticulate](https://github.com/rstudio/reticulate) to run Python packages in R.
 The first step is to configure the path to Python 3 installation with **numpy** and **vaex** libraries.
-To get the default python version used by reticulate, use the following command
-```
-Sys.which("python")
-```
 To explore which Python versions are installed, use:
 ```
 reticulate::py_discover_config()
 ```
-To modify the default path e.g. if a Python executable file is in `/opt/anaconda3/bin/python`, use
+The path to the python will be discovered after the start of scSVA.
+If the correct path is not found, users can set it explicitly before scSVA launching. For example, if a Python executable file is in `/opt/anaconda3/bin/python`, use
 ```
-Sys.setenv(PATH = paste("/opt/anaconda3/bin/", Sys.getenv("PATH"),sep=":"))
+Sys.setenv(RETICULATE_PYTHON = "/opt/anaconda3/bin/")
 ```
-or 
-```
-reticulate::use_python("/opt/anaconda3/bin/")
-```
+
 To run **scSVA**, use the following command in R console
 ```
 scSVA::scSVA()
