@@ -72,9 +72,15 @@ To explore which Python versions are installed, use:
 reticulate::py_discover_config()
 ```
 The path to the python will be discovered after the start of scSVA.
-If the correct path is not found, users can set it explicitly before scSVA launching. For example, if a Python executable file is in `/opt/anaconda3/bin/python`, use
+If the correct path can not be found, users can set it explicitly before scSVA launching. For example, if a Python executable file is in `/opt/anaconda3/bin/python`, use
 ```
 Sys.setenv(RETICULATE_PYTHON = "/opt/anaconda3/bin/")
+```
+**scSVA** uses [Google Cloud Sdk](https://cloud.google.com/sdk/) to manage Google Cloud services.
+The path to the Cloud SDK binaries will be discovered after the start of scSVA. 
+If the correct path can not be found, it can be specified by the command:
+```
+Sys.setenv(GOOGLE_CLOUD_SDK = "/path/to/google-cloud-sdk/bin/")
 ```
 
 To run **scSVA**, use the following command in R console
