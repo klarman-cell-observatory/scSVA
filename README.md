@@ -2,26 +2,27 @@
 
 ---
 
-The **scSVA** (single-cell Scalable Visualization and Analytics) is an R package for 
+The **scSVA** (single-cell Scalable Visualization and Analytics) R package enables 
 interactive visualization and exploratory analysis of massive 
-single-cell omics datasets. The **scSVA** is built with [Shiny](https://shiny.rstudio.com) and is optimized for efficient 
-visualization of cells on 2D/3D embedding and extracting cell features to visualize them 
-from compressed big expression matrices stored on disk in [HDF5](https://www.hdfgroup.org/solutions/hdf5/), [Loom](http://loompy.org) and text file formats.
-This reduces the memory resources needed to explore scRNA-Seq datasets by a factor of ~20,000.
-The **scSVA** is able to visualize and explore interactively hundreds of millions of cells on a laptop 
+single-cell omics datasets. **scSVA** is optimized for efficient 
+visualization of cells on a 2D or 3D embedding, and extracts cell features for visualization 
+from compressed big expression matrices stored on disk in 
+[HDF5](https://www.hdfgroup.org/solutions/hdf5/), [Loom](http://loompy.org), and text file formats.
+This reduces the memory resources needed to explore scRNA-Seq datasets by a factor of ~20,000, equals to the number of genes in an expression matrix.
+**scSVA** is able to visualize and explore interactively hundreds of millions of cells on a laptop 
 or a billion cells on a moderate desktop computer. 
 As a back-end it uses [VaeX](https://github.com/maartenbreddels/vaex), 
-a fast python library for vector data processing on a grid. 
+a fast python library for vector data processing on a grid and uses [Shiny](https://shiny.rstudio.com) for its user interface. 
 
-The **scSVA** simplifies a production of high-quality figures for scientific publications using [ggplot2](https://ggplot2.tidyverse.org) package and provides a comprehensive set of interactive tools for 2D/3D figure customization and annotation.
-The **scSVA** allows for basic statistical analysis like computing cell counts and distributions of gene expression 
+**scSVA** simplifies the production of high-quality figures for scientific publications using 
+the [ggplot2](https://ggplot2.tidyverse.org) package and provides a comprehensive set of interactive tools for 2D or 3D figure customization and annotation.
+**scSVA** allows for basic statistical analysis like computing cell counts and distributions of gene expression 
 values across selected or provided groups of cells. 
 In addition, users can run fast methods for diffusion maps and 3D force-directed layout embedding (FLE) interactively using 
 [scSVAtools](https://github.com/broadinstitute/scSVAtools).
 The full documentation is provided with the **scSVA** package in the "Help" tab.
 
-A visualization of 100 Million cells (upsampled FLE created from 
-the Human Bone Marrow single-cell [dataset](https://preview.data.humancellatlas.org)) 
+Visualization of 100 Million cells (FLE up-sampled  for demonstration purposes from 274,000 human bone marrow cells (https://preview.data.humancellatlas.org) 
 on MacBook Pro (3.1 GHz i7, 16 GB): [![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE)
 
 ---
@@ -34,15 +35,12 @@ The **scSVA** package can be installed from GitHub as follows:
 install.packages(devtools)
 devtools::install_github("broadinstitute/scSVA",dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())
 ```
-You need R>=3.4.3 and Rstudio to be installed on your system to install and run **scSVA** package. 
+R>=3.4.3, Rstudio, and Python 3.6 are required to install and run  **scSVA** package. 
 
 ### Prerequisites
 
-The **scSVA** requires Python 3.6 to be installed on your machine. 
 The most convenient way is to install Python through **Miniconda3** or **Anaconda3**.
-Follow the instructions on https://conda.io/docs/user-guide/install/index.html. 
-
-Then, install **numpy**, **pyopengl**, **vaex**, and **orca** packages:
+Follow the instructions on https://conda.io/docs/user-guide/install/index.html. Then, install **numpy**, **pyopengl**, **vaex**, and **orca** packages:
 ```
 conda install -c anaconda numpy
 conda install -c anaconda pyopengl
@@ -50,15 +48,15 @@ conda install -c conda-forge vaex
 conda install -c plotly plotly-orca
 ```
 
-The **scSVA** uses [zindex](https://github.com/mattgodbolt/zindex) to create an index on gene names
+**scSVA** uses [zindex](https://github.com/mattgodbolt/zindex) to create an index on gene names
 from compressed expression matrices in a text format. 
-If you plan using compressed text files to store the expression matrix, install **zindex** 
+If you plan on using compressed text files to store expression matrices, install **zindex** 
 following the instruction on https://github.com/mattgodbolt/zindex.
 Make sure that **zindex** is properly installed on your computer and
 is visible as an executable file by your operating system. 
 [ImageMagick](https://www.imagemagick.org/script/index.php) 
 is required to combine multiple graphs, see 
-R package [magick](https://github.com/ropensci/magick) for installation instructions.
+the R package [magick](https://github.com/ropensci/magick) for installation instructions.
 To run [scSVAtools](https://github.com/broadinstitute/scSVAtools), install  [Google Cloud SDK](https://cloud.google.com/sdk/downloads) 
 and  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/index.html), see "Run scSVA on a cloud" section.
 
@@ -95,8 +93,8 @@ tab.
 
 ### Install scSVA as a docker container
 
-scSVA docker image has full installation of Rstudio server with R version 3.5.1 with openblass libraries and R dependencies preinstalled for **scSVA**.  
-Python version 3.6.7 is preinstalled with Anaconda, **numpy** (version 1.15.4) and **vaex**
+scSVA docker image has full installation of Rstudio server with R version 3.5.1 with openblass libraries 
+and R dependencies preinstalled for **scSVA**. Python version 3.6.7 is preinstalled with Anaconda, **numpy** (version 1.15.4), and **vaex**
 (version 1.0.0b7). It contains also **zindex** for creating an index on compressed files and 
 gsutil tools for working with [Google Cloud](https://cloud.google.com).  
 
@@ -127,7 +125,7 @@ docker run -d -p 8787:8787 --rm -v PATH:/home/  -e USER=user_login -e PASSWORD=u
 
 PATH is a path to the directory with an expression matrix and metadata. 
 The files will be available in the /home/ directory in the container.
-To run R server, open web browser and visit http://localhost:8787 .
+To run R server, open your web browser and visit http://localhost:8787 .
 To run **scSVA**, use the command in R console
 ```
 scSVA::scSVA()
@@ -140,9 +138,9 @@ The scsva docker image can be also installed using a Dockerfile provided with th
 docker build -t scsva path_to_directory_with_Dockerfile
 ```
 
-### Run scSVA on a cloud
+### Run scSVA on a cloud platform
 
-We focus here on running scSVA in the Google Cloud Compute Engine (GCE) 
+We focus here on running scSVA in Google Cloud Compute Engine (GCE) 
 using  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/index.html).
 
 1. Create and configure a Google Cloud Project, see [instructions](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
