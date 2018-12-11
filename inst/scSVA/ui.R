@@ -130,7 +130,7 @@ navbarMenu("Visualize",
                          )
                        ),
                        splitLayout(
-                         actionButton("reset_view", "Refresh"),
+                         actionButton("reset_view", "Reset View"),
                          actionButton("change_colorbar", "Apply")
                        )
                      ),
@@ -261,7 +261,7 @@ navbarMenu("Visualize",
                     )
                   ),
                   splitLayout(
-                    actionButton("reset_view_3d", "Apply"),
+                    actionButton("reset_view_3d", "Reset View"),
                     actionButton("change_colorbar_3d", "Apply")
                   ),
                   DT::dataTableOutput("file_cont_XYZ",height = 400)
@@ -1384,7 +1384,7 @@ h3(tags$b("Plot Appearance")),
 
 h4(tags$b("2D")),
 
-"The default plot is a density plot where for a given grid resolution
+"The default plot is a density plot, where for a given grid resolution,  
 it shows the number of cells within a square. The grid resolution can be modified by a
 scroll bar below the plot. The default resolution is 512 which means that a plot consists of 512x512=262144 square cells.
 Users can increase the resolution of the grid to produce higher quality figures but this results in increasing the plot refreshing time as more points needs to be plotted.
@@ -1406,8 +1406,8 @@ Finally, the main plot can be saved in many file formats (vector or raster) with
 h5(tags$b("Plot Navigation")),
 
 "Mouse left-click starts a selection of a rectangular region.",
-"Zooming in: double-click inside the selected area will zoom in the selected region with a specified resolution (\"Grid Resolution\" scrollbar).",
-"\"Refresh\" button below the main plot when clicked will restore the original plot xy range.",
+"Zooming in: double-click inside the selected area will zoom in the selected region with the specified resolution (\"Grid Resolution\" scrollbar).",
+"\"Reset View\" button below the main plot when clicked will restore the original plot xy range with the specified resolution.",
 
 h4(tags$b("3D")),
 
