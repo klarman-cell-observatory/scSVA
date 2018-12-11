@@ -32,7 +32,7 @@ on MacBook Pro (3.1 GHz i7, 16 GB): [![100 Million cells](inst/scSVA/www/movie.p
 The **scSVA** package can be installed from GitHub as follows:
 
 ```
-install.packages(devtools)
+install.packages("devtools")
 devtools::install_github("broadinstitute/scSVA",dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())
 ```
 R>=3.4.3, Rstudio, and Python 3.6 are required to install and run  **scSVA** package. 
