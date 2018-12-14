@@ -57,7 +57,7 @@ is visible as an executable file by your operating system.
 [ImageMagick](https://www.imagemagick.org/script/index.php) 
 is required to combine multiple graphs, see 
 the R package [magick](https://github.com/ropensci/magick) for installation instructions.
-To run [scSVAtools](https://github.com/broadinstitute/scSVAtools), install  [Google Cloud SDK](https://cloud.google.com/sdk/downloads) 
+To run [scSVAtools](https://github.com/klarman-cell-observatory/scSVAtools), install  [Google Cloud SDK](https://cloud.google.com/sdk/downloads) 
 and  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/index.html), see "Run scSVA on a cloud" section.
 
 
@@ -105,7 +105,7 @@ Then, pull the scsva docker image using the following command in the terminal:
 docker pull mtabaka/scsva
 ```
 
-To pull [scSVAtools](https://github.com/broadinstitute/scSVAtools) use
+To pull [scSVAtools](https://github.com/klarman-cell-observatory/scSVAtools) use
 
 ```
 docker pull mtabaka/scsvatools
