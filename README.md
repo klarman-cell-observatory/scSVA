@@ -19,7 +19,7 @@ the [ggplot2](https://ggplot2.tidyverse.org) package and provides a comprehensiv
 **scSVA** allows for basic statistical analysis like computing cell counts and distributions of gene expression 
 values across selected or provided groups of cells. 
 In addition, users can run fast methods for diffusion maps and 3D force-directed layout embedding (FLE) interactively using 
-[scSVAtools](https://github.com/broadinstitute/scSVAtools).
+[scSVAtools](https://github.com/klarman-cell-observatory/scSVAtools).
 The full documentation is provided with the **scSVA** package in the "Help" tab.
 
 Visualization of 100 Million cells (FLE up-sampled  for demonstration purposes from 274,000 human bone marrow cells (https://preview.data.humancellatlas.org) 
