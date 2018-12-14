@@ -1674,7 +1674,7 @@ tags$li("scSVA simplifies management of buckets and running scripts on the Googl
 br(),
 tags$li("scSVA package can be installed from source or as a cloud-compatible image/container."),
 br(),
-tags$li("scSVA is an open source, released under an MIT license, and is freely available for both commercial and academic research"))
+tags$li("scSVA is an open source, released under an GPL-3.0 license, and is freely available for both commercial and academic research"))
 ),
 br(),
 br(),
