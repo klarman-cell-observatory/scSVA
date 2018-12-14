@@ -2495,7 +2495,6 @@ observeEvent(input$load_dataset_ClusterNames, {
   observeEvent(input$FLE_run, {
   Parameters.FA_3D<<-data.frame( path= if(input$FLE_Path==""){input$FLE_Path}else{paste0("/home/",basename(input$FLE_Path))},
                                  memmory = paste0(input$FLE_memmory,"g"),
-                                 layout=input$FLE_type,
                                  nsteps=input$FLE_nsteps,
                                  nThreads=input$FLE_nthreads,
                                  scalingRatio=input$FLE_scalingRatio,
