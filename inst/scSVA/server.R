@@ -2444,7 +2444,7 @@ observeEvent(input$load_dataset_ClusterNames, {
                                     collapse = '<br/>'),
                      sep = '<br/>')
     getTerminalOutputResult()
-    cmd=paste0("run -v ",dirname(input$DMap_Path),":/home --rm ",tag," R -e 'source(\"/scsvatools/DMap.R\")' &>DMap.logs &")
+    cmd=paste0("run -v ",dirname(input$DMap_Path),":/home --rm ",tag," R -e 'source(\"/scSVAtools/R/DMap.R\")' &>DMap.logs &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
     
@@ -2486,7 +2486,7 @@ observeEvent(input$load_dataset_ClusterNames, {
                                     collapse = '<br/>'),
                      sep = '<br/>')
     getTerminalOutputResult()
-    cmd=paste0("run -v ",if(input$NNG_Path==""){"~/"}else{dirname(input$NNG_Path)},":/home --rm ",tag," R -e 'source(\"/scsvatools/NNG.R\")' &>NNG.logs &")
+    cmd=paste0("run -v ",if(input$NNG_Path==""){"~/"}else{dirname(input$NNG_Path)},":/home --rm ",tag," R -e 'source(\"/scSVAtools/R/NNG.R\")' &>NNG.logs &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
     
@@ -2530,7 +2530,7 @@ observeEvent(input$load_dataset_ClusterNames, {
                                     collapse = '<br/>'),
                      sep = '<br/>')
     getTerminalOutputResult()
-    cmd=paste0("run -v ",if(input$FLE_Path==""){"~/"}else{dirname(input$FLE_Path)},":/home --rm ",tag," R -e 'source(\"/scsvatools/FLE.R\")' &> FLE.logs &")
+    cmd=paste0("run -v ",if(input$FLE_Path==""){"~/"}else{dirname(input$FLE_Path)},":/home --rm ",tag," R -e 'source(\"/scSVAtools/R/FLE.R\")' &> FLE.logs &")
     print(cmd)
     docker_cmd(vm,cmd = cmd, capture_text = TRUE)
     
