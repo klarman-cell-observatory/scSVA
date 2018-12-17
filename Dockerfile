@@ -155,7 +155,7 @@ RUN echo '#!/bin/bash\nxvfb-run --auto-servernum --server-args "-screen 0 1024x1
     chmod +x /usr/local/bin/orca
 
 #Install scsva
-RUN Rscript -e "devtools::install_github('klarman-cell-observatory/scSVA',dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())"
+RUN echo '201812171237' >/dev/null && Rscript -e "devtools::install_github('klarman-cell-observatory/scSVA',dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())"
  
 # Run rocker/rstudio init
 CMD ["/init"]
