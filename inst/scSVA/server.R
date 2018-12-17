@@ -34,6 +34,7 @@ server <- function(input, output, session) {
     cluster_df      =  data.frame(i = 0.0, j = 0.0,x = 0.0, Cluster_ID = 0 ),
     cluster_stat    =  data.frame(ID=0,Ncells=0,Mean=0.0,Median=0.0,SD=0.0, Q1=0.0, Q3=0.0,stringsAsFactors = F),
     loaded_feature  =  "",
+    feature_type    =  "",
     initialize      =  TRUE,
     cluster_colors  =  NULL,
     setup_colors    =  TRUE,
@@ -121,6 +122,7 @@ server <- function(input, output, session) {
   
   
    output$file_cont_XYZ <- renderDataTable({
+    if(length(vals$inputFiles$XYZ)==0){return()} 
     if(!is.null(vals$inputFiles$XYZ)){
       if(input$inputFileType_XYZ  ==  "HDF5"){
         choices  =  h5ls(vals$inputFiles$XYZ)
@@ -134,7 +136,7 @@ server <- function(input, output, session) {
           updateSelectizeInput(session,"Y_coord_3d",choices=paste0(choices$group[ind],"/",choices$name[ind]))
           updateSelectizeInput(session,"Z_coord_3d",choices=paste0(choices$group[ind],"/",choices$name[ind]))
         }
-      DT::datatable(choices,options = list(scrollY = "150px",dom = 't'),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XYZ))
+      DT::datatable(choices,options = list(paging = FALSE,scrollY = "250px"),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XYZ))
       }
       else if(input$inputFileType_XYZ  ==  "CSV"){
         if(summary(file(vals$inputFiles$XYZ))$class  ==  "gzfile"){
@@ -147,12 +149,13 @@ server <- function(input, output, session) {
         updateSelectizeInput(session,"Z_coord_3d",choices=vals$featureList$XYZ)
         
         DT::datatable(data.frame(Features=vals$featureList$XYZ),
-                      options = list(scrollY = "150px",dom = 't'),
+                      options = list(paging = FALSE,scrollY = "250px"),
                       rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XYZ))
       }
     }
   }) 
   output$file_cont_XY <- renderDataTable({
+    if(length(vals$inputFiles$XY)==0){return()}
     if(!is.null(vals$inputFiles$XY)){
       if(input$inputFileType_XY  ==  "HDF5"){
         choices  =  h5ls(vals$inputFiles$XY)
@@ -164,7 +167,7 @@ server <- function(input, output, session) {
           updateSelectizeInput(session,"X_coord",choices=paste0(choices$group[ind],"/",choices$name[ind]))
           updateSelectizeInput(session,"Y_coord",choices=paste0(choices$group[ind],"/",choices$name[ind]))
         }
-      DT::datatable(choices,options = list(scrollY = "150px",dom = 't'),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XY))
+      DT::datatable(choices,options = list(paging = FALSE,scrollY = "250px"),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XY))
       }
       else if(input$inputFileType_XY  ==  "CSV"){
         if(summary(file(vals$inputFiles$XY))$class  ==  "gzfile"){
@@ -175,13 +178,14 @@ server <- function(input, output, session) {
         updateSelectizeInput(session,"X_coord",choices=vals$featureList$XY)
         updateSelectizeInput(session,"Y_coord",choices=vals$featureList$XY)
         DT::datatable(data.frame(Features=vals$featureList$XY),
-                      options = list(scrollY = "150px",dom = 't'),
+                      options = list(paging = FALSE,scrollY = "250px"),
                       rownames = FALSE,caption =paste0("File: ",vals$inputFiles$XY))
       }
     }
   })
 
   output$file_cont_Genes <- renderDataTable({
+    if(length(vals$EM)==0){return()}
     if(!is.null(vals$EM)){
       if(input$inputFileType_Genes  ==  "HDF5"){
         choices  =  h5ls(vals$EM)
@@ -206,20 +210,21 @@ server <- function(input, output, session) {
         }
 
         DT::datatable(choices,
-                      options  = list(scrollY = "150px",dom = 't'),
+                      options  = list(paging = FALSE,scrollY = "250px"),
                       rownames = FALSE,
                       caption  = paste0("File: ",vals$EM))
       }
       else if(input$inputFileType_Genes  ==  "CSV"){
         DT::datatable(data.frame(data.frame(Files=c(paste0("Expression matrix: ",vals$EM),
                                                     paste0("Gene Names: ",vals$inputFiles$Gene.Names)))),
-                      options  = list(scrollY = "150px",dom = 't'),
+                      options  = list(paging = FALSE,scrollY = "250px"),
                       rownames = FALSE)
       }
     }
   })
 
   output$file_cont_Clusters <- renderDataTable({
+    if(length(vals$inputFiles$Clusters)==0){return()}
     if(!is.null(vals$inputFiles$Clusters)){
       if(input$inputFileType_Clusters  ==  "HDF5"){
         choices  =  h5ls(vals$inputFiles$Clusters)
@@ -229,7 +234,7 @@ server <- function(input, output, session) {
         } else {
           updateSelectizeInput(session,"inputClusters",choices=paste0(choices$group[ind],"/",choices$name[ind]))
         }
-        DT::datatable(choices,options = list(scrollY = "150px",dom = 't'),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$Clusters))
+        DT::datatable(choices,options = list(paging = FALSE,scrollY = "250px"),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$Clusters))
       }
       else if(input$inputFileType_Clusters  ==  "CSV"){
         if(summary(file(vals$inputFiles$Clusters))$class  ==  "gzfile"){
@@ -239,7 +244,7 @@ server <- function(input, output, session) {
         }
         updateSelectizeInput(session,"inputClusters",choices=vals$featureList$Clusters)
         DT::datatable(data.frame(Features=vals$featureList$Clusters),
-                      options   = list(scrollY = "150px",dom = 't'),
+                      options   = list(paging = FALSE,scrollY = "250px"),
                       rownames  = FALSE,
                       caption   = paste0("File: ",vals$inputFiles$Clusters))
       }
@@ -247,6 +252,7 @@ server <- function(input, output, session) {
   })
 
 output$file_cont_ClusterNames <- renderDataTable({
+    if(length(vals$inputFiles$Cluster.Names)==0){return()} 
     if(!is.null(vals$inputFiles$Cluster.Names)){
       print(vals$inputFiles$Cluster.Names)
       if(input$inputFileType_ClusterNames  ==  "HDF5"){
@@ -257,7 +263,7 @@ output$file_cont_ClusterNames <- renderDataTable({
         } else {
           updateSelectizeInput(session,"inputClusterNames",choices=paste0(choices$group[ind],"/",choices$name[ind]))
         }
-        DT::datatable(choices,options = list(scrollY = "150px",dom = 't'),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$Cluster.Names))
+        DT::datatable(choices,options = list(paging = FALSE,scrollY = "250px"),rownames = FALSE,caption =paste0("File: ",vals$inputFiles$Cluster.Names))
       }
       else if(input$inputFileType_ClusterNames  ==  "CSV"){
         if(summary(file(vals$inputFiles$Cluster.Names))$class  ==  "gzfile"){
@@ -267,7 +273,7 @@ output$file_cont_ClusterNames <- renderDataTable({
         }
         updateSelectizeInput(session,"inputClusterNames",choices=vals$featureList$Cluster.Names)
         DT::datatable(data.frame(Features=vals$featureList$Cluster.Names),
-                      options   = list(scrollY = "150px",dom = 't'),
+                      options   = list(paging = FALSE,scrollY = "250px"),
                       rownames  = FALSE,
                       caption   = paste0("File: ",vals$inputFiles$Cluster.Names))
       }
@@ -564,8 +570,6 @@ observeEvent(input$load_dataset_ClusterNames, {
                                                       stringsAsFactors = F))))
         })
       }
-    updateCheckboxInput(session, "get_exp_clusters", value = FALSE)
-    updateTextInput(session,     "title",            value = input$choose_gene)
     if(!is.null(vals$group_Adist) | !is.null(vals$group_Bdist)){vals$group_Adist    <- NULL
                                                                 vals$group_Bdist    <- NULL
                                                                 vals$gAa            =  FALSE
@@ -576,14 +580,15 @@ observeEvent(input$load_dataset_ClusterNames, {
                                                                                                   Median = 0.0,
                                                                                                   SD     = 0.0,
                                                                                                   stringsAsFactors = F)
-                                                                }
+    }
     vals$rangeE          <-  c(py_to_r(ds$min('Gene')),py_to_r(ds$max('Gene')))
-    vals$trans           =   TRUE
     vals$loaded_feature  <-  input$choose_gene
-    if(input$plot_expression == FALSE) {
-      updateTextInput(session,"plot_expression",value=TRUE)
-    } else {
-      updateTextInput(session,"clegend",value="Expression")}
+    vals$feature_type    <-  c("Gene Expression", "Expression")  
+    updateCheckboxInput(session, "get_exp_clusters", value  =  FALSE)
+    if(input$plot_expression==FALSE){updateCheckboxInput(session,"plot_expression", value = TRUE)}
+    updateTextInput(session,     "title",            value = vals$loaded_feature)
+    updateTextInput(session,     "clegend",          value = (vals$feature_type)[2])
+    vals$trans        =  TRUE
     }
   })
 
@@ -1089,7 +1094,7 @@ observeEvent(input$load_dataset_ClusterNames, {
   output$table1 <- DT::renderDataTable(datatable({plyr::rename(vals$Annotation.data,
                                                                c("i"  =  input$x_axis,"j"  =  input$y_axis, "Annotation" = "Label"))},
                                        editable  =  TRUE,
-                                       options   =  list(pageLength = 100,scrollY = "250px")) %>% formatRound(c(input$x_axis,input$y_axis), 3))
+                                       options   =  list(paging = FALSE,scrollY = "250px")) %>% formatRound(c(input$x_axis,input$y_axis), 3))
 
   proxy2 = DT::dataTableProxy('table1')
   observeEvent(input$table1_cell_edit, {
@@ -1246,17 +1251,18 @@ observeEvent(input$load_dataset_ClusterNames, {
   })
 
   observeEvent(input$plot_expression, {
-    if(input$plot_expression & input$choose_gene  ==  "") {
+    if(input$plot_expression & vals$loaded_feature  ==  "") {
       showNotification("Select a Gene",type = "warning",duration = 10)
       updateCheckboxInput(session = session,inputId = "plot_expression",value = FALSE)
       return()
     }
     if(input$plot_expression){
-    vals$plot.ID  =  2
-    vals$rangeE   <- c(py_to_r(ds$min('Gene')),py_to_r(ds$max('Gene')))
-    vals$trans    <- TRUE
-    updateTextInput(session,     "clegend",          value = "Expression")
-    updateCheckboxInput(session, "get_exp_clusters", value = FALSE)
+      updateTextInput(session,     "title",            value = vals$loaded_feature)
+      updateTextInput(session,     "clegend",          value = (vals$feature_type)[2])
+      updateCheckboxInput(session, "get_exp_clusters", value = FALSE)
+      vals$plot.ID  =  2
+      vals$rangeE   <- c(py_to_r(ds$min('Gene')),py_to_r(ds$max('Gene')))
+      vals$trans    <- TRUE
     }
     else
     {
@@ -1639,7 +1645,6 @@ observeEvent(input$load_dataset_ClusterNames, {
   observeEvent(input$get_gene_sign_score, {
     GeneSignature  <-  unlist(strsplit(input$gene_sign, "[,;\n ]+"))
     GeneSignature  <-  vals$GeneNames[vals$GeneNames %in% GeneSignature]
-    updateTextInput(session, "clegend", value = "Score")
     if(length(GeneSignature)  ==  0) {
       return()
     }
@@ -1735,16 +1740,14 @@ observeEvent(input$load_dataset_ClusterNames, {
       rm(VectSignScores)
     }
 ############End H5
-    vals$plot.ID  =  2
-    vals$trans    =  TRUE
-    vals$rangeE   <- c(py_to_r(ds$min('Gene')),py_to_r(ds$max('Gene')))
-    updateTextInput(session,"title",value=input$GeneSetName)
+    vals$rangeE          <-  c(py_to_r(ds$min('Gene')),py_to_r(ds$max('Gene')))
     vals$loaded_feature  <-  input$GeneSetName
-    updateTextInput(session,     "choose_gene",      value  =  "")
+    vals$feature_type    <-  c("Gene Signature", "Score")
     updateCheckboxInput(session, "get_exp_clusters", value  =  FALSE)
-#    if(input$plot_expression  ==  FALSE) {
-      updateTextInput(session,"plot_expression",value=TRUE)
- #   }
+    if(input$plot_expression==FALSE){updateCheckboxInput(session,"plot_expression", value = TRUE)}
+    updateTextInput(session,     "title",            value = vals$loaded_feature)
+    updateTextInput(session,     "clegend",          value = (vals$feature_type)[2])
+    vals$trans           <-   TRUE
   })
 
   output$PlotPalette <- renderPlot({
