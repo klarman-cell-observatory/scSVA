@@ -372,18 +372,19 @@ samples are rows and columns are features to VM instance, as described
 above. Provide the full path to the matrix on VM instance and specify
 parameters to run diffusion maps:
 
-  Label                            Description
-  -------------------------------- --------------------------------------------------------------------------------------------------
-  Path to Matrix                   Full path to the input matrix (columns - features, rows - samples) in txt (gzipped) file format.
-  Number of NNs                    Number of nearest neighbors
-  Number of Diffusion Components   Number of diffusion components to compute
-  Eigendecomposition Package       Package to use for performing eigen decomposition (Irlba, ARPACK)
-  Number of NNs (Local Sigma)      Number of nearest neighbors to use in computing local scaling parameter
-  Number of Threads                Number of threads to use
-  ANN Method                       Approximate Nearest Neighbor method to use (Annoy or Nmslib)
-  Number of Trees                  Number of trees to generate (if ANNs method == Annoy)
-  M,efC,efS                        Parameters to run Nearest Neighbors (if Anns method == Nmslib)
-
+  | Label | Description |
+  | ---   | ---         |
+  | Path to Matrix                  | Full path to the input matrix (columns - features, rows - samples) in txt (gzipped) file format |
+  | Number of NNs                   | Number of nearest neighbors |
+  | Number of Diffusion Components  | Number of diffusion components to compute |
+  | Eigendecomposition Package      | Package to use for performing eigen decomposition (Irlba, ARPACK) |
+  | Number of NNs (Local Sigma)     | Number of nearest neighbors to use in computing local scaling parameter |
+  | Number of Threads               | Number of threads to use |
+  | ANN Method                      | Approximate Nearest Neighbor method to use (Annoy or Nmslib) |
+  | Number of Trees                 | Number of trees to generate (if ANNs method == Annoy) |
+  | M,efC,efS                       | Parameters to run Nearest Neighbors (if Anns method == Nmslib) |
+  | ---   | ---         |
+  
 and click "Run DMaps".
 
 #### **Nearest Neighbor Graph**
