@@ -383,7 +383,6 @@ parameters to run diffusion maps:
   | ANN Method                      | Approximate Nearest Neighbor method to use (Annoy or Nmslib) |
   | Number of Trees                 | Number of trees to generate (if ANNs method == Annoy) |
   | M,efC,efS                       | Parameters to run Nearest Neighbors (if Anns method == Nmslib) |
-  | ---   | ---         |
   
 and click "Run DMaps".
 
@@ -402,7 +401,6 @@ step will be used by default.
 |  ANN Method       |   Approximate Nearest Neighbor method to use (Annoy or Nmslib) |
 |  Number of Trees  |   Number of trees to generate (if ANNs method == Annoy) |
 |  M,efC,efS        |   Parameters to run Nearest Neighbors (if Anns method == Nmslib) |
-| ---   | ---         |
 
 #### **3D FLE**
 
@@ -422,7 +420,6 @@ previous step will be used. Specify parameters:
  |  BarnesHut Splits                      | Split the tree construction at its first level. Number of threads used is 8 to the power barnesHutSplits: 1 - 8 processes, 2 - 64 processes |
  |  Update Centers            |             Update Barnes-Hut region centers when not rebuilding Barnes-Hut tree |
  |  Restart                    |            If TRUE, the simulations will start from the last saved configuration |
- | ---   | ---         |
 
 and click "RUN FLE" to start the simulation. Once the graph is loaded
 and processed, users can click "Get Distances" to check the changes in
