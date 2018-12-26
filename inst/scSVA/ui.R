@@ -828,7 +828,7 @@ navbarMenu("Cloud",
                                            choices = c("Irlba","ARPACK")
                                ),
                                numericInput('DMap_ls', 
-                                            label='Number of NNs to compute local sigma', 
+                                            label='Number of NNs (Local Sigma)', 
                                             5, 
                                             min = 1, 
                                             max = Inf
@@ -840,7 +840,7 @@ navbarMenu("Cloud",
                                             max = Inf
                                ),
                                selectInput("DMap_NNMethod",
-                                           "ANNs method",
+                                           "ANN Method",
                                            choices = c("Annoy","Nmslib")
                                            ),
                                conditionalPanel(condition = "input.DMap_NNMethod == 'Annoy'",
@@ -864,7 +864,7 @@ navbarMenu("Cloud",
                                                              max = Inf
                                                 ),
                                                 numericInput('DMap_Nmslib_efS', 
-                                                             label='M', 
+                                                             label='efS', 
                                                              100, 
                                                              min = 1, 
                                                              max = Inf
@@ -897,7 +897,7 @@ navbarMenu("Cloud",
                                             max = Inf
                                ),
                                selectInput("NNG_NNMethod",
-                                           "ANNs method",
+                                           "ANN Method",
                                            choices = c("Annoy","Nmslib")
                                ),
                                conditionalPanel(condition = "input.NNG_NNMethod == 'Annoy'",
@@ -921,7 +921,7 @@ navbarMenu("Cloud",
                                                              max = Inf
                                                 ),
                                                 numericInput('NNG_Nmslib_efS', 
-                                                             label='M', 
+                                                             label='efS', 
                                                              100, 
                                                              min = 1, 
                                                              max = Inf
@@ -953,8 +953,8 @@ navbarMenu("Cloud",
                                             min = 1, 
                                             max = Inf
                                ),
-                               numericInput('FLE_memmory', 
-                                            label='Memmory (Gb)', 
+                               numericInput('FLE_memory', 
+                                            label='Memory (Gb)', 
                                             4, 
                                             min = 1, 
                                             max = Inf
@@ -990,7 +990,7 @@ navbarMenu("Cloud",
                                              "Restart",
                                              FALSE),
                                actionButton("FLE_run", 
-                                            "Run",
+                                            "Run FLE",
                                             style='width:100px;'),
                                hr(),
                                actionButton("FLE_loadCoordinates", 
@@ -1291,7 +1291,7 @@ h3(tags$b("File Upload Guide")),
 (",a("HDF5", href="https://www.hdfgroup.org", target="_blank"),") files.",
 "The input data consists of (i) X- and Y-coordinates of your favorite embedding (e.g. tSNE or FLE),
 (ii) gene expression matrix or vectors that contain a gene quantification for each cell, and (iii) metadata information on each cell's group assignment",
-"The file loading depends on a file type and is described separately for each file type.",
+". The file loading depends on a file type and is described separately for each file type.",
 
 "The first thing to do is to open a File tab panel. This panel allows for loading all necessary files to scSVA.",
 
@@ -1306,7 +1306,8 @@ tags$ul(
           datasets and groups that store datasets and other groups. The table lists both groups and datasets with detailed information like
           dataset/group name, storage class, dimension and size of datasets. Select the datasets with X and Y coordinates.
           scSVA supports HDF5-based ", a("Loom", href="https://github.com/linnarsson-lab/loompy", target="_blank"), "files.
-          The filename extension must be from the following set [.h5,.hdf5,h5ad,.loom] or from the same set but with all letters capitalized.
+          The filename extension must be from the following set [.h5,.hdf5,.h5ad,.loom] or from the same set but with all letters capitalized.
+          H5ad file type can be used if the feature matrix is not in a sparse format.   
           "),
   tags$li("CSV - When you load a CSV file you make sure that the file has a header with column names.
           The column names (feature names) will appear in the new table below the panel.
@@ -1400,7 +1401,7 @@ a("dichromat package", href="https://cran.r-project.org/web/packages/dichromat/i
 Finally, the main plot can be saved in many file formats (vector or raster) with a custom resolution and size.",tags$br(),
 
 
-h5(tags$b("Plot Navigation")),
+h4(tags$b("Plot Navigation")),
 
 "Mouse left-click starts a selection of a rectangular region.",
 "Zooming in: double-click inside the selected area will zoom in the selected region with the specified resolution (\"Grid Resolution\" scrollbar).",
@@ -1450,7 +1451,7 @@ Single-click on a row of the table (group) will show a gene expression distribut
 Users can mark many groups to compare the expression distributions among them. Each selection opens a new distribution plot on right-hand side.
 The plots are interactive and colored by the same colors as groups on the embedding. The scroll bar, on the bottom of the plots, changes the y-axis range for all plots.
 Moving a cursor to the plot bar will show fraction of cells falling in a given expression range.
-To compare all the distributions on one plot go to \"ECDF\" tab to open a plot with empirical cumulative distribution function (users can easily read dropout levels from the ecdf plot or
+To compare all the distributions on one plot, go to \"ECDF\" tab to open a plot with empirical cumulative distribution function (users can easily read dropout levels from the ecdf plot or
 check for bi- or multimodalities that may suggest underclustering) or \"Violin\" to visualize 
 group expression values by violin plot. \"Census\" tab contains the fractions of cells in each group.",
 
@@ -1465,9 +1466,9 @@ the z-scores across the entire gene set.",
 
 h3(tags$b("Cloud")),
 
-"scSVA supports interactive analytics and data storage mamagement on the cloud (Google Cloud Platform). 
+"scSVA supports interactive analytics and data storage management on the cloud (Google Cloud Platform). 
 Google Cloud Platform charges you for storage and running VMs, ", a("see pricing", href="https://cloud.google.com/pricing/", target="_blank"),".",
-"Stop or delete any GCP services once you are done with your analysis. Good practice is to often check the billing of your project.
+"Stop or delete any GCP services once you are done with your analysis. Good practice is to regularly check the billing of your project.
 scSVA is an R package distributed as-is, without warranties of any kind. Make sure that you use the GCP services reasonably and follow best practices.",
 "To get started make sure that your system configuration is ready to use GCP and in particular to launch virtual machine instances in Google Cloud Compute Engine (GCE).
 Follow the instructions below to install and configure all required tools:",tags$br(),
@@ -1485,7 +1486,7 @@ h4(tags$b("Storage")),
 "To list google buckets from the default project, choose \"gs\" and click \"Explore FS\". Select a bucket from the list and click right arrow 
 below the list to show its content. 
 The upper arrow below the list navigates up one directory. To remove the object from the bucket, select it and click \"Remove Selected Object\". 
-Users can also create new buckets by specyfying the name of the bucket and clicking \"Create New Bucket\" button. 
+Users can also create new buckets by specifying the name of the bucket and clicking \"Create New Bucket\" button. 
 Selection of \"local\" filesystem will list directories and files on your local computer. Users can easily copy objects 
 between the local computer and the bucket by clicking left/right arrow between filesystem panels.",
 
@@ -1497,13 +1498,16 @@ Clicking it opens the Console in new browser tab. Users can monitor there all se
 To get started, go to \"GCE Setup\" and provide the path to GCE private key in JSON format (see step (ii)), 
 your project name (see step (i)), and the zone you want to launch VM (see ",
 a("instructions", href="https://cloud.google.com/compute/docs/regions-zones/", target="_blank"),")",
-", After successful configuration, \"GCE List Disks\" in \"GCE Info\" allows to display 
-all disks in the project, and \"GCE List Instances\" list all VMs (stopped and running) 
-in the project. Right console displays all the information from GCE",
+". After successful configuration, \"GCE List Disks\" in \"GCE Info\" allows to display 
+all disks in the project, and \"GCE List Instances\" lists all VMs (stopped and running) 
+in the project. Right console displays all the information from GCE. ",
 
 "To launch a new VM, or restart a stopped VM, go to \"RUN VM\" window, and click
-\"GCE List Machine Types\". This will list all available Machines in your selected zone.
+\"GCE List Machine Types\". This will list all available machines in your selected zone.
 Select container with computational tools you want to run on VM, and provide name for your virtual machine.
+Users need to provide the full name e.g. \"mtabaka/scsvatools\" to pull ",a("scSVAtools", href="https://github.com/klarman-cell-observatory/scSVAtools", target="_blank"),
+" container from ",a("Docker Hub", href="https://hub.docker.com", target="_blank"),". 
+Alternatively, pull an image in the VM instance terminal, for example by the command \"docker pull mtabaka/scsvatools\".  
 To build a new image on Google Cloud, go to terminal, then to directory with a Dockerfile and run the following command:", tags$br(),
 tags$code("gcloud container builds submit --timeout=2h --tag gcr.io/Project_Name/ContainerName"),tags$br(),
 "For further information, see instructions to ",a("googleComputeEngineR", href="https://cloudyr.github.io/googleComputeEngineR/", target="_blank"), "package.",
@@ -1516,20 +1520,113 @@ Specify the VM on which you want to run jobs and click \"Assign VM\".
 Notice the change in the name of \"Selected VM\" above the right console. 
 From now, you can run commands and containerized tools and copy files between local machine and VM instance.
 You can also stop or delete the VM instance and connect to VM instance through ssh. 
-If you stop the VM instance you are charged only for storage, and the restarted VM instance will have access to all files from previous session.
+If you stop the VM instance, you are charged only for storage, and the restarted VM instance will have access to all files from previous session.
 If you delete VM instance, it will permanently remove a disk and VM instance (you will not be able to restart it in the future).  
 In order to list running processes on the VM instance click \"Run Top\".
 Users can easily transfer files from/to the VM instance using the panel below.
 Selected files from the list can be modified after clicking \"Edit\" button. 
 Users can also create new files on the VM instances. 
-If your container has tools installed that can run scripts (eg. bash, R, or python) 
-selecting a script on VM and clicking \"Run Script\" will start running the script on the VM instances.
-If you have many running VM instances you can switch between them by selecting a running instance and assigning it.
+If your container has tools installed that can run bash scripts  
+selecting a script on VM and clicking \"Run Script\" will start running the script on the VM instance.
+Make sure that the path to the files used in the script is correctly specified.
+The directory mounted by docker is determined from the script path. 
+For example, if the full path to the script is /home/user/analysis/script.sh, 
+all files and subdirectories in /home/user/analysis/ will be mounted in /home/ directory of the running container.
+If the input file used in script is in /home/user/analysis/input/input.csv, it will be available at /home/input/input.csv in the running container.
+For that reason, all input files need to be in the same directory as the script or in its subdirectories.
+If multiple containers are available on your VM instance, select the right one for running the script from the list \"Container to Run\".
+If you have many running VM instances you can switch between them by selecting and assigning the running instance.
 We added also the option of running commands on the VM instance. Write the command in the test field below the console
 (as you would do it in the bash terminal) and click \"Run SSH Command\".
-The output of the command appears in the console. To remove all text from the console, click \"Clear\" button.
-",
+The output of the command is displayed in the console. To remove all text from the console, click \"Clear\" button.
 
+As a proof of concept, we implemented a method for the efficient computation of a 3D single-cell data visualization.
+The generation of 3D visualization consists of 3 steps: 1) computation of diffusion maps; 
+2) creation of a nearest neighbor graph in diffusion component space; 
+3) application of 3D force-directed layout algorithm (ForceAtlas2) to the nearest neighbor graph.
+The code is on GitHub in ",a("scSVAtools", href="https://github.com/klarman-cell-observatory/scSVAtools", target="_blank")," 
+repository. scSVA supports generation of 3D visualizations only on GCP (we plan on extending it to local machines and other cloud platforms).",
+
+h4(tags$b("Diffusion Maps")),
+
+"To get started, transfer a matrix in txt (gzipped) file format where samples are rows and columns are features to VM instance, as described above.
+Provide the full path to the matrix on VM instance and specify parameters to run diffusion maps:",
+tableHTML(data.frame(Label=c("Path to Matrix",
+                             "Number of NNs",
+                             "Number of Diffusion Components",
+                             "Eigendecomposition Package",
+                             "Number of NNs (Local Sigma)",
+                             "Number of Threads",
+                             "ANN Method",
+                             "Number of Trees",
+                             "M,efC,efS"),
+                     Description=c("Full path to the input matrix (columns - features, rows - samples) 
+                                   in txt (gzipped) file format.",
+                                   "Number of nearest neighbors",
+                                   "Number of diffusion components to compute",
+                                   "Package to use for performing eigen decomposition (Irlba, ARPACK)",
+                                   "Number of nearest neighbors to use in computing local scaling parameter",
+                                   "Number of threads to use",
+                                   "Approximate Nearest Neighbor method to use (Annoy or Nmslib)",
+                                   "Number of trees to generate (if ANNs method == Annoy)",
+                                   "Parameters to run Nearest Neighbors (if Anns method == Nmslib)"
+                                   )),
+          rownames = F,#widths = c(rep(60,5)),
+          theme= "default"),
+"and click \"Run DMaps\".",
+
+h4(tags$b("Nearest Neighbor Graph")),
+
+"Once the computation of diffusion maps is finished, select parameters for approximate nearest neighbor computation, and click \"Run NN Graph\".
+If the path is not specified, diffusion maps generated in the previous step will be used by default.",
+tableHTML(data.frame(Label=c("Path to Matrix",
+                            "Number of NNs",
+                            "Number of Threads",
+                            "ANN Method",
+                            "Number of Trees",
+                            "M,efC,efS"),
+                     Description=c("Full path to the input matrix (columns - features, rows - samples) 
+                                   in txt (gzipped) file format.",
+                                   "Number of nearest neighbors",
+                                   "Number of threads to use",
+                                   "Approximate Nearest Neighbor method to use (Annoy or Nmslib)",
+                                   "Number of trres to generate (if ANNs method == Annoy)",
+                                   "Parameters to run Nearest Neighbors (if Anns method == Nmslib)"
+                     )),
+          rownames = F,
+          theme= "default"),
+
+h4(tags$b("3D FLE")),
+"The last step is to apply 3D force-directed layout (ForceAtlas2) to the nearest neighbor graph. If the path is not specified, 
+the graph from the previous step will be used. Specify parameters:",
+tableHTML(data.frame(Label=c("Path to Graph",
+                            "Number of Iterations",
+                            "Number of Threads",
+                            "Memmory (Gb)",
+                            "Scaling Ratio",
+                            "BarnesHut Theta",
+                            "BarnesHut Update Every nth Iteration",
+                            "BarnesHut Splits",
+                            "Update Centers",
+                            "Restart"),
+                     Description=c("Full path to the input graph (as an adjacency list i.e. each ith row should contain Node_i and a list of Nodes connected to Node_i) 
+                                   in txt (gzipped) file format.",
+                                   "Number of iterations",
+                                   "Number of threads",
+                                   "Memory of java virtual machine",
+                                   "Scaling parameter, ratio of repulsive to attractive forces. Higher values will result in larger graphs",
+                                   "Theta of the Barnes Hut approximation. The higher theta, the lower accuracy and faster computations",
+                                   "Update the tree every nth iteration",
+                                   "Split the tree construction at its first level.  Number of threads used is 8 to the power barnesHutSplits: 1 - 8 processes, 2 - 64 processes",
+                                   "Update Barnes-Hut region centers when not rebuilding Barnes-Hut tree",
+                                   "If TRUE, the simulations will start from the last saved configuration"
+                                  )),
+          rownames = F,
+          theme= "default"),
+"and click \"RUN FLE\" to start the simulation. Once the graph is loaded and processed, users can click \"Get Distances\" to check the changes in the total distance 
+changed at every iteration. The simulation should be run until a steady state is reached. Progress (percentage of iterations done) can be checked by clicking \"Check Progress\".
+Once the simulations are done, click \"Load FLE Coordinates\" to visualize the results of simulations in the \"Visualize->3D\" tab.
+",
 #h4(tags$b("Compute 3D FLE")),
 #a("ForceAtlas2", href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0098679", target="_blank"),
 #"number of iterations",
@@ -1579,7 +1676,7 @@ h4(tags$b("Multiplots")),
 
 "Here, users can arrange multiple graphs on a grid. To start click on \"Add Plot\" button. This will add the main plot to a list of plots.
 Check the box \"Show Multiplots\" to make it visible. To add more graphs just click \"Add Plot\". To change the size of added plot or its resolution 
-go to \"Visualaize\", \"2D\" tab and modify the plot properties on the right sidebar. scSVA uses ", 
+go to \"Visualize\", \"2D\" tab and modify the plot properties on the right sidebar. scSVA uses ", 
 a("R bindings", href="https://cran.r-project.org/web/packages/magick/index.html", target="_blank")," to",
 a("ImageMagick", href="https://www.imagemagick.org/script/index.php", target="_blank"), "to arrange graphs on a grid.
 Multiplots can be zoomed in/out by changing the \"Scale\" scroll bar, \"Number of Columns\" specify number of graphs per row.
@@ -1631,7 +1728,7 @@ tabPanel("About",
 
 h3(tags$b("Motivation")),
 
-h4("The main aim of the scSVA (link to github) is to simplify exploratory data analysis in the field of single-cell transcriptomics.
+h4("The main aim of the ",a("scSVA", href="https://github.com/klarman-cell-observatory/scSVA", target="_blank")," is to simplify exploratory data analysis in the field of single-cell transcriptomics.
 The progress in the development of high-throughput single-cell methods has allowed for study of cell types and states of
 hundreds of thousands of cells. The interest of scientist in understanding biology at single cell level is not a fad but rather an ultimate goal -
 e.g. the  ,",a("Human Cell Atlas Consortium", href="https://www.humancellatlas.org", target="_blank"), " is planning to profile at least 10 billion human cells
@@ -1650,26 +1747,26 @@ br(),
 
 h4(
 tags$ul(
-tags$li("A graphical interface for fast 2D & 3D visualization and exploratory analysis of single-cell data"),
+tags$li("A graphical interface for fast 2D & 3D visualization and exploratory analysis of single-cell datasets"),
 br(),
-tags$li("An interactive R package built with Shiny and VaeX as the back-end that allows for visualizing of a billion cells"),
+tags$li("An interactive R package built with Shiny and VaeX as the back-end that allow for visualizing of a billion cells"),
 br(),
 tags$li("Applicable to any single-cell high-throughput genomic studies"),
 br(),tags$div(img(src = "scsva.logo.png", width = "500px", height = "200px",align="right")),
 tags$li("scSVA allows basic statistical analysis and help formulating hypotheses"),
 br(),
-tags$li("It simplifies a production of high-quality figures for scientific publications"),
+tags$li("scSVA simplifies a production of high-quality figures for scientific publications"),
 br(),
-tags$li("It allows for comprehensive figure customization by letting users to create their own color palettes or upload users' favorite fonts"),
+tags$li("scSVA allows for comprehensive figure customization by letting users to create their own color palettes or upload users' favorite fonts"),
 br(),
 tags$li("scSVA is optimized for efficient extracting of cell features
         from compressed big datasets in hdf5 and text file formats"),
 br(),
-tags$li("scSVA include fast algorithms for diffusion maps and 3D force-directed layout embedding (FLE)"),
+tags$li("scSVA includes fast algorithms for diffusion maps and 3D force-directed layout embedding (FLE)"),
 br(),
 tags$li("scSVA simplifies management of buckets and running scripts on the Google Cloud Platform"),
 br(),
-tags$li("scSVA package can be installed from source or as a cloud-compatible image/container."),
+tags$li("scSVA can be installed from source or as a cloud-compatible image/container."),
 br(),
 tags$li("scSVA is an open source, released under an GPL-3.0 license, and is freely available for both commercial and academic research"))
 ),
