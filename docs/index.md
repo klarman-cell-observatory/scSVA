@@ -531,7 +531,8 @@ x-, and y- coordinates.
 
 #### Guided Video Tutorials:
 
-Created by Marcin Tabaka \
- Contact me at
+Created by Marcin Tabaka 
+
+Contact me at
 [mtabaka@broadinstitute.org](mailto:mtabaka@broadinstitute.org) 
 
