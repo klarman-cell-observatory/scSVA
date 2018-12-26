@@ -2,6 +2,7 @@
 
 
 ####**_Marcin Tabaka_**
+
 ####**_12/26/2018_**
 
 
@@ -533,7 +534,4 @@ x-, and y- coordinates. \
 Created by Marcin Tabaka \
  Contact me at
 [mtabaka@broadinstitute.org](mailto:mtabaka@broadinstitute.org) \
- \
- \
- \
 
