@@ -1362,7 +1362,7 @@ tags$ul(
           "for tab-delimited files or",tags$br(),
           tags$code("zindex expression_matrix.csv.gz  --field 1  --delimiter , --skip-first 1 "),tags$br(),
           "for e.g. comma-delimited files.",
-          "scSVA can create the index for you if a tick box \"Create index on Compressed File\" is checked.",
+          "scSVA can create the index for you if a tick box \"Create Index on Compressed File\" is checked.",
           "Make sure that ",a("Zindex", href="https://github.com/mattgodbolt/zindex", target="_blank")," is properly installed on your computer and
           is visible as an executable file by your operating system.
           Indexing allows for very efficient retrieval of the rows from compressed files without need for loading of the entire matrix into the memory.
@@ -1374,7 +1374,7 @@ tags$ul(
 
 h4(tags$b("Selection of Groups")),
 
-"Selection of a vector of group IDs is identical to the selection of XY coordinates. Group IDs must be a vector of integer (categorical data). ",
+"Selection of a vector of group IDs is identical to the selection of XY coordinates. Group IDs must be a vector of integers (categorical data). ",
 
 h3(tags$b("Plot Appearance")),
 
@@ -1590,7 +1590,7 @@ tableHTML(data.frame(Label=c("Path to Matrix",
                                    "Number of nearest neighbors",
                                    "Number of threads to use",
                                    "Approximate Nearest Neighbor method to use (Annoy or Nmslib)",
-                                   "Number of trres to generate (if ANNs method == Annoy)",
+                                   "Number of trees to generate (if ANNs method == Annoy)",
                                    "Parameters to run Nearest Neighbors (if Anns method == Nmslib)"
                      )),
           rownames = F,
@@ -1624,7 +1624,7 @@ tableHTML(data.frame(Label=c("Path to Graph",
           rownames = F,
           theme= "default"),
 "and click \"RUN FLE\" to start the simulation. Once the graph is loaded and processed, users can click \"Get Distances\" to check the changes in the total distance 
-changed at every iteration. The simulation should be run until a steady state is reached. Progress (percentage of iterations done) can be checked by clicking \"Check Progress\".
+moved at every iteration. The simulation should be run until a steady state is reached. Progress (percentage of iterations done) can be checked by clicking \"Check Progress\".
 Once the simulations are done, click \"Load FLE Coordinates\" to visualize the results of simulations in the \"Visualize->3D\" tab.
 ",
 #h4(tags$b("Compute 3D FLE")),
