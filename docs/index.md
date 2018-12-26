@@ -394,14 +394,15 @@ for approximate nearest neighbor computation, and click "Run NN Graph".
 If the path is not specified, diffusion maps generated in the previous
 step will be used by default.
 
-  Label               Description
-  ------------------- --------------------------------------------------------------------------------------------------
-  Path to Matrix      Full path to the input matrix (columns - features, rows - samples) in txt (gzipped) file format.
-  Number of NNs       Number of nearest neighbors
-  Number of Threads   Number of threads to use
-  ANN Method          Approximate Nearest Neighbor method to use (Annoy or Nmslib)
-  Number of Trees     Number of trees to generate (if ANNs method == Annoy)
-  M,efC,efS           Parameters to run Nearest Neighbors (if Anns method == Nmslib)
+|  Label        |       Description |
+| ---   | ---         |
+|  Path to Matrix   |   Full path to the input matrix (columns - features, rows - samples) in txt (gzipped) file format |
+|  Number of NNs     |  Number of nearest neighbors |
+|  Number of Threads |   Number of threads to use |
+|  ANN Method       |   Approximate Nearest Neighbor method to use (Annoy or Nmslib) |
+|  Number of Trees  |   Number of trees to generate (if ANNs method == Annoy) |
+|  M,efC,efS        |   Parameters to run Nearest Neighbors (if Anns method == Nmslib) |
+| ---   | ---         |
 
 #### **3D FLE**
 
@@ -409,18 +410,19 @@ The last step is to apply 3D force-directed layout (ForceAtlas2) to the
 nearest neighbor graph. If the path is not specified, the graph from the
 previous step will be used. Specify parameters:
 
-  Label                                  Description
-  -------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  Path to Graph                          Full path to the input graph (as an adjacency list i.e. each ith row should contain Node\_i and a list of Nodes connected to Node\_i) in txt (gzipped) file format.
-  Number of Iterations                   Number of iterations
-  Number of Threads                      Number of threads
-  Memmory (Gb)                           Memory of java virtual machine
-  Scaling Ratio                          Scaling parameter, ratio of repulsive to attractive forces. Higher values will result in larger graphs
-  BarnesHut Theta                        Theta of the Barnes Hut approximation. The higher theta, the lower accuracy and faster computations
-  BarnesHut Update Every nth Iteration   Update the tree every nth iteration
-  BarnesHut Splits                       Split the tree construction at its first level. Number of threads used is 8 to the power barnesHutSplits: 1 - 8 processes, 2 - 64 processes
-  Update Centers                         Update Barnes-Hut region centers when not rebuilding Barnes-Hut tree
-  Restart                                If TRUE, the simulations will start from the last saved configuration
+ |  Label              |                    Description |
+ |  ---                | ---               |
+ | Path to Graph       |                    Full path to the input graph (as an adjacency list i.e. each ith row should contain Node\_i and a list of Nodes connected to Node\_i) in txt (gzipped) file format |
+ | Number of Iterations |                  Number of iterations |
+ |  Number of Threads   |                   Number of threads |
+ | Memmory (Gb)         |                  Memory of java virtual machine |
+ |  Scaling Ratio       |                   Scaling parameter, ratio of repulsive to attractive forces. Higher values will result in larger graphs |
+ |  BarnesHut Theta     |                   Theta of the Barnes Hut approximation. The higher theta, the lower accuracy and faster computations |
+ |  BarnesHut Update Every nth Iteration |   Update the tree every nth iteration |
+ |  BarnesHut Splits                      | Split the tree construction at its first level. Number of threads used is 8 to the power barnesHutSplits: 1 - 8 processes, 2 - 64 processes |
+ |  Update Centers            |             Update Barnes-Hut region centers when not rebuilding Barnes-Hut tree |
+ |  Restart                    |            If TRUE, the simulations will start from the last saved configuration |
+ | ---   | ---         |
 
 and click "RUN FLE" to start the simulation. Once the graph is loaded
 and processed, users can click "Get Distances" to check the changes in
