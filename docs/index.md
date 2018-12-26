@@ -1,11 +1,8 @@
 # **scSVA**
 
-<br><br>
 
 ####**_Marcin Tabaka_**
 ####**_12/26/2018_**
-
-<br><br>
 
 
 ### **File Upload Guide**
