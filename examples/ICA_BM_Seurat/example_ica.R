@@ -1,6 +1,3 @@
-#Here we process ICA BM dataset with Seurat, compute diffusion maps, generate 3D FLE with scSVAtools and save the results as hdf5 (loom) file
-#Use with docker (Dockerfile in the same directory) 
-#Run the script with scSVA on the Google Cloud Platform
 require(Matrix)
 require(Seurat)
 require(rhdf5)

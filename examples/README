@@ -1,0 +1,10 @@
+ICA_BM_Seurat contains scripts to process ICA BM dataset with Seurat, compute diffusion maps, 
+generate 3D FLE with scSVAtools and save the results as hdf5 (loom) file.
+
+Build an image from ICA_BM_Seurat directory containing Dockerfile.
+It has all dependencies to run Seurat and scSVAtools.
+In the scSVA "Cloud->Compute Engine" tab, run VM instance on the Google Cloud Platform 
+specyfing container name generated above,
+copy example_ica.R and example_ica.sh to the VM instance,
+select container name to run on VM instance,     
+select example_ica.sh script and run it by clicking "Run Script" button.
