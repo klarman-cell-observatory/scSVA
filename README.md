@@ -20,7 +20,7 @@ the [ggplot2](https://ggplot2.tidyverse.org) package and provides a comprehensiv
 values across selected or provided groups of cells. 
 In addition, users can run fast methods for diffusion maps and 3D force-directed layout embedding (FLE) interactively using 
 [scSVAtools](https://github.com/klarman-cell-observatory/scSVAtools).
-The full documentation is provided with the **scSVA** package in the "Help" tab or [here](https://github.com/klarman-cell-observatory/scSVA/blob/master/docs/index.md).
+The full documentation is provided with the **scSVA** package in the "Help" tab or [here](https://github.com/klarman-cell-observatory/scSVA/blob/master/docs/index.md). See also [video tutorials](#video-tutorials).
 
 Visualization of 100 Million cells (FLE up-sampled  for demonstration purposes from 274,000 human bone marrow cells (https://preview.data.humancellatlas.org) 
 on MacBook Pro (3.1 GHz i7, 16 GB): [![100 Million cells](inst/scSVA/www/movie.png?raw=t)](https://youtu.be/HoeIh7JnMoE)
@@ -215,11 +215,28 @@ using  [googleComputeEngineR](https://cloudyr.github.io/googleComputeEngineR/ind
     gce_vm_stop("scsva")  
     ```
     User will not be charged for stopped instances (except for storage). 
-    You can restart the vm instance by rerunning step 10.  
-    User can also delete vm instance by running 
+    You can restart the vm instance by rerunning step 10. User can also delete vm instance by running 
     ```
     gce_vm_delete("scsva")
     ```
+Users can run scSVA on the Google Cloud Platform from the local scSVA. In the "Cloud->Compute Engine" tab,
+specify "User Name", "Password Name", and mtabka/scsva (or generated one on GCP) in the "Container Name" field, 
+then launch VM. See [docs](https://github.com/klarman-cell-observatory/scSVA/blob/master/docs/index.md) for details.
+
+### Video tutorials
+
+1. [2D visualization of 1B cells (upsampled dataset)](https://www.youtube.com/watch?v=BFCgRmMDL_Y)
+2. [File Upload](https://www.youtube.com/watch?v=kY28Oa9YCiA)
+3. [2D plots](https://www.youtube.com/watch?v=XeXGTr7KaQA)
+4. [3D plots](https://www.youtube.com/watch?v=4Td9aPJzMTQ)
+5. [Basic exploratory analysis: a, ](https://www.youtube.com/watch?v=W_U9swh468U) [b](https://www.youtube.com/watch?v=pRYXk7w7HtU)
+6. [Metadata](https://www.youtube.com/watch?v=7lPvUjONiBA)
+7. [Annotation](https://www.youtube.com/watch?v=bxGLlSb5vfc)
+8. [Categorical data exploration](https://www.youtube.com/watch?v=uVWCz4UM_9s)
+9. [Multiplots](https://www.youtube.com/watch?v=brsa9KSo3B4)
+10. [Cloud](https://www.youtube.com/watch?v=XQktAEk1cZQ)
+11. [Creating custom color palletes](https://www.youtube.com/watch?v=wsIqj3DZp-U)
+12. [Adding fonts](https://www.youtube.com/watch?v=WuLz_8B1rZ4)
   
 ### Authors
 
