@@ -226,17 +226,18 @@ then launch VM. See [docs](https://github.com/klarman-cell-observatory/scSVA/blo
 ### Video tutorials
 
 1. [2D visualization of 1B cells (upsampled dataset)](https://www.youtube.com/watch?v=BFCgRmMDL_Y)
-2. [File Upload](https://www.youtube.com/watch?v=kY28Oa9YCiA)
+2. [File upload](https://www.youtube.com/watch?v=kY28Oa9YCiA)
 3. [2D plots](https://www.youtube.com/watch?v=XeXGTr7KaQA)
-4. [3D plots](https://www.youtube.com/watch?v=4Td9aPJzMTQ)
+4. [3D plots](https://www.youtube.com/watch?v=4Td9aPJzMTQ), [100M cells](https://www.youtube.com/watch?v=Dpwe8jlf37I)
 5. [Basic exploratory analysis: a, ](https://www.youtube.com/watch?v=W_U9swh468U) [b](https://www.youtube.com/watch?v=pRYXk7w7HtU)
-6. [Metadata](https://www.youtube.com/watch?v=7lPvUjONiBA)
-7. [Annotation](https://www.youtube.com/watch?v=bxGLlSb5vfc)
-8. [Categorical data exploration](https://www.youtube.com/watch?v=uVWCz4UM_9s)
-9. [Multiplots](https://www.youtube.com/watch?v=brsa9KSo3B4)
-10. [Cloud](https://www.youtube.com/watch?v=XQktAEk1cZQ)
-11. [Creating custom color palletes](https://www.youtube.com/watch?v=wsIqj3DZp-U)
-12. [Adding fonts](https://www.youtube.com/watch?v=WuLz_8B1rZ4)
+6. [Gene Signatures](https://www.youtube.com/watch?v=_IdZQnkLsfY)
+7. [Metadata](https://www.youtube.com/watch?v=7lPvUjONiBA)
+8. [Annotation](https://www.youtube.com/watch?v=bxGLlSb5vfc)
+9. [Categorical data exploration](https://www.youtube.com/watch?v=uVWCz4UM_9s)
+10. [Multiplots](https://www.youtube.com/watch?v=brsa9KSo3B4)
+11. [Cloud](https://www.youtube.com/watch?v=XQktAEk1cZQ)
+12. [Creating custom color palletes](https://www.youtube.com/watch?v=wsIqj3DZp-U)
+13. [Adding fonts](https://www.youtube.com/watch?v=WuLz_8B1rZ4)
   
 ### Authors
 
