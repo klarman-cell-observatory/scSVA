@@ -31,7 +31,7 @@ sc.pp.neighbors(adata_variable_genes, n_neighbors=10, n_pcs=40)
 
 print("Finding Clusters")
 sc.tl.louvain(adata_variable_genes)
-
+adata_variable_genes.obs['louvain'] = adata_variable_genes.obs['louvain'].astype(int)
 print("Computing UMAP embedding")
 sc.tl.umap(adata_variable_genes)
 
