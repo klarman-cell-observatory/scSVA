@@ -1,6 +1,6 @@
 import h5py
 import numpy as np
-import scanpy.api as sc
+import scanpy as sc
 
 print("Reading ICA (bone marrow) dataset")
 adata = sc.read_10x_h5("ica_bone_marrow_h5.h5", genome='GRCh38')
