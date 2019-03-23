@@ -35,7 +35,7 @@ The **scSVA** package can be installed from GitHub as follows:
 install.packages("devtools")
 devtools::install_github("klarman-cell-observatory/scSVA",dependencies=TRUE,repos=BiocInstaller::biocinstallRepos())
 ```
-R>=3.4.3, Rstudio, and Python 3.6 are required to install and run  **scSVA** package. 
+R>=3.4.3, Rstudio, and Python 3.6 are required to install and run  **scSVA** package. Note that starting from Bioconductor 3.8 (R version 3.5), the BiocInstaller packages is replaced with BiocManager. Therefore `BiocInstaller::biocinstallRepos()` must be replaced with `BiocManager::repositories()`.
 
 ### Prerequisites
 
