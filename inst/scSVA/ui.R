@@ -1339,8 +1339,7 @@ tags$ul(
                                "Cell.2"=c("1","0", "1","..."),
                                'Cell.3'=c("0","3", "0","..."),
                                '...'=c("...","...", "...","...")),
-                    rownames = F,widths = c(rep(60,5)),
-                    theme= "default"),
+                    rownames = F,widths = c(rep(60,5))),
           "The file saved as a CSV file with a comma as a delimiter:",
           tags$br(),
           "Genes,Cell.1,Cell.2,Cell.3,...", tags$br(),
@@ -1571,8 +1570,7 @@ tableHTML(data.frame(Label=c("Path to Matrix",
                                    "Number of trees to generate (if ANNs method == Annoy)",
                                    "Parameters to run Nearest Neighbors (if Anns method == Nmslib)"
                                    )),
-          rownames = F,#widths = c(rep(60,5)),
-          theme= "default"),
+          rownames = F,#widths = c(rep(60,5))),
 "and click \"Run DMaps\".",
 
 h4(tags$b("Nearest Neighbor Graph")),
@@ -1593,8 +1591,7 @@ tableHTML(data.frame(Label=c("Path to Matrix",
                                    "Number of trees to generate (if ANNs method == Annoy)",
                                    "Parameters to run Nearest Neighbors (if Anns method == Nmslib)"
                      )),
-          rownames = F,
-          theme= "default"),
+          rownames = F),
 
 h4(tags$b("3D FLE")),
 "The last step is to apply 3D force-directed layout (ForceAtlas2) to the nearest neighbor graph. If the path is not specified, 
@@ -1621,8 +1618,7 @@ tableHTML(data.frame(Label=c("Path to Graph",
                                    "Update Barnes-Hut region centers when not rebuilding Barnes-Hut tree",
                                    "If TRUE, the simulations will start from the last saved configuration"
                                   )),
-          rownames = F,
-          theme= "default"),
+          rownames = F),
 "and click \"RUN FLE\" to start the simulation. Once the graph is loaded and processed, users can click \"Get Distances\" to check the changes in the total distance 
 moved at every iteration. The simulation should be run until a steady state is reached. Progress (percentage of iterations done) can be checked by clicking \"Check Progress\".
 Once the simulations are done, click \"Load FLE Coordinates\" to visualize the results of simulations in the \"Visualize->3D\" tab.
