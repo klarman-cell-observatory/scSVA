@@ -1570,7 +1570,8 @@ tableHTML(data.frame(Label=c("Path to Matrix",
                                    "Number of trees to generate (if ANNs method == Annoy)",
                                    "Parameters to run Nearest Neighbors (if Anns method == Nmslib)"
                                    )),
-          rownames = F,#widths = c(rep(60,5))),
+          rownames = F#widths = c(rep(60,5)),
+         ),
 "and click \"Run DMaps\".",
 
 h4(tags$b("Nearest Neighbor Graph")),
